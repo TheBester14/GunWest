@@ -25,9 +25,9 @@ public class Bullet extends Entity {
 			this.y += this.speed;
 		}
 		
-		if (this.keyHandler.rightPressed) {
+		if (this.directionHorizontal) {
 			this.x += this.speed;
-		} else if (this.keyHandler.leftPressed) {
+		} else if (this.directionHorizontal) {
 			this.x -= this.speed;
 		}
 	}
