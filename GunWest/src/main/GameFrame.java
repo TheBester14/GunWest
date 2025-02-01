@@ -8,29 +8,26 @@ public class GameFrame extends JFrame {
     private ConnectionPage connectionPage;
 
     public GameFrame() {
-        // Frame settings
+       
         setTitle("GunWest");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
-
-        // Create the game panel, main menu, and connection page
+        
         gamePanel = new GamePanel();
         mainMenu = new MainMenu(this); // Pass the GameFrame to MainMenu
         connectionPage = new ConnectionPage(this); // Pass the GameFrame to ConnectionPage
 
-        // Link the game panel to the main menu
         gamePanel.setMainMenu(mainMenu);
 
-        // Set the main menu as the initial content pane
         setContentPane(mainMenu);
+        
 
-        // Pack and center the window
         pack();
-        setLocationRelativeTo(null); // Centers the window on the screen
+        setSize(400, 300);
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    // Method to switch to the main menu
     public void switchToMainMenu() {
         setContentPane(mainMenu);
         revalidate();
@@ -44,12 +41,10 @@ public class GameFrame extends JFrame {
         repaint();
     }
 
-    // Method to switch to the game panel
+
     public void switchToGamePanel(String ipAddress, String username) {
-        // Set connection details in the game panel
         gamePanel.setConnectionDetails(ipAddress, username);
 
-        // Switch to the game panel
         setContentPane(gamePanel);
         revalidate();
         repaint();
@@ -59,7 +54,6 @@ public class GameFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Create and display the game frame
         new GameFrame();
     }
 }
