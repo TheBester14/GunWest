@@ -8,19 +8,21 @@ import main.GamePanel;
 import main.KeyHandler;
 
 public abstract class Entity {
-	private KeyHandler keyHandler;
-	private GamePanel gp;
-	private int x;
-	private int y;
-	private int width;
-	private int height;
-	private int speed;
-	private int health;
-	private BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
+	protected int x;
+	protected int y;
+	protected int width;
+	protected int height;
+	protected Color color;
+	protected int speed;
+	protected int health;
+	protected BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
 	
-	public Entity(GamePanel gp) {
-		this.gp = gp;
-		keyHandler = new KeyHandler(gp);
+	public Entity() {
+		this.x = 500;
+		this.y = 500;
+		this.width = 50;
+		this.height = 50;
+		this.color = Color.black;
 		setImage("");
 	}
 	
@@ -36,13 +38,11 @@ public abstract class Entity {
 		
 	}
 	
-	public void update() {
-		
-	}
+	abstract void update();
 	
 	public void draw(Graphics g) {
-		g.setColor(Color.cyan);
-		g.fillRect(500, 500, 500, 500);
+		g.setColor(this.color);
+		g.fillRect(this.x, this.y, this.width, this.height);
 //		g.drawImage(sprite, x, y, null);
 	}
 }

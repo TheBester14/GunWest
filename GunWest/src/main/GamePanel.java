@@ -24,7 +24,13 @@ public class GamePanel extends JPanel implements Runnable {
     public TileManager tileManager;
 
     public GamePanel() {
-        this.player = new Player(this, "Adnane");
+
+        this.player = new Player(keyHandler, "Adnane");
+
+    	this.player = new Player(keyHandler, "Adnane");
+ 
+        this.player = new Player(keyHandler, "Adnane");
+
         this.tileManager = new TileManager(this);
 
         // Set preferred size and background color
@@ -73,6 +79,21 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void updateGame() {
+
+    	move();
+        checkCollision();
+        this.player.update();
         player.update();
+    	
     }
+	private void move() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void checkCollision() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
