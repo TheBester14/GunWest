@@ -4,10 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 public class Bullet extends Entity {
-	private boolean directionHorizontal;
-	private boolean directionVertical;
+	private int directionHorizontal;
+	private int directionVertical;
 	
-	public Bullet(int x, int y, int speed, boolean directionHorizontal, boolean directionVertical) {
+	public Bullet(int x, int y, int speed, int directionHorizontal, int directionVertical) {
 		this.x = x;
 		this.y = y;
 		this.width = 10;
@@ -19,15 +19,15 @@ public class Bullet extends Entity {
 	}
 	
 	public void update() {
-		if (this.directionVertical) {
+		if (this.directionVertical == 0) {
 			this.y -= this.speed;
-		} else {
+		} else if (this.directionVertical == 1) {
 			this.y += this.speed;
 		}
 		
-		if (this.directionHorizontal) {
+		if (this.directionHorizontal == 0) {
 			this.x += this.speed;
-		} else if (this.directionHorizontal) {
+		} else if (this.directionHorizontal == 1) {
 			this.x -= this.speed;
 		}
 	}
