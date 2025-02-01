@@ -1,7 +1,6 @@
 package entities;
 
 import main.GamePanel;
-import main.KeyHandler;
 
 public class Player extends Entity {
 	private String name;
