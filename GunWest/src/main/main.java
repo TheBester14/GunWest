@@ -8,6 +8,8 @@ import network.Server;
 public class main {
 
 	public static void main(String[] args) {
+		GameFrame panel = new GameFrame();
+
         if (args.length > 0 && args[0].equals("host")) {
             try {
                 Server server = new Server(5000);
