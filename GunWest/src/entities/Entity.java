@@ -22,7 +22,7 @@ public abstract class Entity {
 		this.y = 500;
 		this.width = 50;
 		this.height = 50;
-		this.color = Color.RED;
+		this.color = Color.black;
 		setImage("");
 	}
 	
