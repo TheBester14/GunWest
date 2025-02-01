@@ -1,24 +1,32 @@
 package main;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
-import java.awt.*;
-import javax.swing.*;
-
+import javax.swing.JPanel;
+import tile.TileManager;
 import entities.Player;
 
 public class GamePanel extends JPanel implements Runnable {
     // Screen settings
-    public static final int SCREEN_WIDTH = 1280;   // e.g. 40 tiles * 32px
-    public static final int SCREEN_HEIGHT = 704;     // e.g. 22 tiles * 32px
+    public static final int SCREEN_WIDTH = 1280;
+    public static final int SCREEN_HEIGHT = 704;
     public static final Dimension SCREEN_SIZE = new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT);
+    public final int tileSize = 32;
+    public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 colonnes
+    public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 lignes
 
     // Thread for game loop
     public Thread gameThread;
     public KeyHandler keyHandler = new KeyHandler(this);
     public Player player;
+    public TileManager tileManager;
 
     public GamePanel() {
-    	this.player = new Player(this, "Adnane");
-    	
+        this.player = new Player(this, "Adnane");
+        this.tileManager = new TileManager(this);
+
         // Set preferred size and background color
         this.setPreferredSize(SCREEN_SIZE);
         this.setBackground(Color.BLACK);
@@ -33,16 +41,15 @@ public class GamePanel extends JPanel implements Runnable {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        draw(g);
-    }
+        Graphics2D g2 = (Graphics2D) g;
 
-    // Custom drawing method
-    public void draw(Graphics g) {
-        // Example drawing: display a simple string
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 24));
-        g.drawString("Hello, Game Panel!", 50, 50);
-        player.draw(g);
+        // Dessiner la carte
+        tileManager.draw(g2);
+
+        // Dessiner le joueur par-dessus la carte
+        player.draw(g2);
+
+        g2.dispose();
     }
 
     @Override
@@ -58,23 +65,14 @@ public class GamePanel extends JPanel implements Runnable {
             lastTime = now;
 
             if (delta >= 1) {
-                updateGame(); 
-                repaint();    
+                updateGame();
+                repaint();
                 delta--;
             }
         }
     }
 
     private void updateGame() {
-        move();
-        checkCollision();
-    }
-
-    private void move() {
-        // Movement logic goes here
-    }
-
-    private void checkCollision() {
-        // Collision logic goes here
+        player.update();
     }
 }
