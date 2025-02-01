@@ -17,7 +17,7 @@ public class GamePanel extends JPanel implements Runnable {
     public Player player;
 
     public GamePanel() {
-    	this.player = new Player(this, "Adnane");
+    	this.player = new Player(keyHandler, "Adnane");
     	
         // Set preferred size and background color
         this.setPreferredSize(SCREEN_SIZE);
@@ -68,6 +68,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void updateGame() {
         move();
         checkCollision();
+        this.player.update();
     }
 
     private void move() {
