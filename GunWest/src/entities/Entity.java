@@ -9,7 +9,6 @@ import main.KeyHandler;
 
 public abstract class Entity {
 	protected KeyHandler keyHandler;
-	protected GamePanel gp;
 	protected int x;
 	protected int y;
 	protected int width;
@@ -18,9 +17,8 @@ public abstract class Entity {
 	protected int health;
 	protected BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
 	
-	public Entity(GamePanel gp) {
-		this.gp = gp;
-		keyHandler = new KeyHandler(gp);
+	public Entity(GamePanel gp, KeyHandler keyHandler) {
+		this.keyHandler = keyHandler;
 		setImage("");
 	}
 	
