@@ -18,6 +18,10 @@ public abstract class Entity {
 	protected BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
 	
 	public Entity(GamePanel gp, KeyHandler keyHandler) {
+		this.x = 500;
+		this.y = 500;
+		this.width = 500;
+		this.height = 500;
 		this.keyHandler = keyHandler;
 		setImage("");
 	}
@@ -38,7 +42,7 @@ public abstract class Entity {
 	
 	public void draw(Graphics g) {
 		g.setColor(Color.cyan);
-		g.fillRect(500, 500, 500, 500);
+		g.fillRect(this.x, this.y, this.width, this.height);
 //		g.drawImage(sprite, x, y, null);
 	}
 }

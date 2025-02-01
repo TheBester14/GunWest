@@ -17,7 +17,6 @@ public class Player extends Entity {
 	}
 	
 	public void update() {
-		System.out.println(this.keyHandler.upPressed);
 		if (this.keyHandler.upPressed) {
 			this.y -= this.speed;
 		} else if (this.keyHandler.downPressed) {
