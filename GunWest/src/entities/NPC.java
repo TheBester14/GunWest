@@ -1,5 +1,7 @@
 package entities;
 
-public class NPC {
+public class NPC extends Entity {
+	public NPC() {
 
+	}
 }

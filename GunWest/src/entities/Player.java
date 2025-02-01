@@ -1,5 +1,17 @@
 package entities;
 
-public class Player {
+import main.GamePanel;
+import main.KeyHandler;
 
+public class Player extends Entity {
+	private String name;
+	
+	public Player(GamePanel gp, String name) {
+		super(gp);
+		this.name = name;
+	}
+	
+	public void shootBullet() {
+		
+	}
 }

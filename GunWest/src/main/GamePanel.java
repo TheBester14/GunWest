@@ -3,6 +3,8 @@ package main;
 import java.awt.*;
 import javax.swing.*;
 
+import entities.Player;
+
 public class GamePanel extends JPanel implements Runnable {
     // Screen settings
     public static final int SCREEN_WIDTH = 1280;   // e.g. 40 tiles * 32px
@@ -12,8 +14,10 @@ public class GamePanel extends JPanel implements Runnable {
     // Thread for game loop
     public Thread gameThread;
     public KeyHandler keyHandler = new KeyHandler(this);
+    public Player player;
 
     public GamePanel() {
+    	this.player = new Player(this, "Adnane");
     	
         // Set preferred size and background color
         this.setPreferredSize(SCREEN_SIZE);
@@ -38,6 +42,7 @@ public class GamePanel extends JPanel implements Runnable {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.drawString("Hello, Game Panel!", 50, 50);
+        player.draw(g);
     }
 
     @Override
