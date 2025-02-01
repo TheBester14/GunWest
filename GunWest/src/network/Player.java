@@ -7,11 +7,13 @@ public class Player {
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
+    private int playerId;
 
-    public Player(Socket socket) throws IOException {
+    public Player(Socket socket, int playerId) throws IOException {
         this.socket = socket;
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.output = new PrintWriter(socket.getOutputStream(), true);
+        this.playerId = playerId;
     }
 
     public void sendMessage(String message) {
@@ -20,6 +22,10 @@ public class Player {
 
     public String receiveMessage() throws IOException {
         return input.readLine();
+    }
+    
+    public int getPlayerId() {
+        return playerId;
     }
 
     public void close() throws IOException {
