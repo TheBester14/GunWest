@@ -16,7 +16,12 @@ public class GamePanel extends JPanel implements Runnable {
     public final int tileSize = 32;
     public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 colonnes
     public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 lignes
+    private String AdresseIP;
+    private String nomUtil;
 
+    
+    
+    private MainMenu mainMenu;
     // Thread for game loop
     public Thread gameThread;
     public KeyHandler keyHandler = new KeyHandler(this);
@@ -33,13 +38,13 @@ public class GamePanel extends JPanel implements Runnable {
 
         this.tileManager = new TileManager(this);
 
-        // Set preferred size and background color
+        
         this.setPreferredSize(SCREEN_SIZE);
         this.setBackground(Color.BLACK);
-        this.setFocusable(true); // Allow panel to receive key events
+        this.setFocusable(true); 
         this.addKeyListener(keyHandler);
 
-        // Start the game loop thread
+       
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -95,5 +100,20 @@ public class GamePanel extends JPanel implements Runnable {
 		// TODO Auto-generated method stub
 		
 	}
+	public void startGame() {
+		System.out.println("Starting game with IP: " + AdresseIP + 
+				" and username: " + nomUtil );
+        // Reset the game state if needed
+        // Start the game loop
+        new Thread(this).start();
+    }
+	 public void setConnectionDetails(String AdresseIP, String nomUtil) {
+	        this.AdresseIP = AdresseIP;
+	        this.nomUtil = nomUtil;
+	    }
+    public void setMainMenu(MainMenu mainMenu) {
+        this.mainMenu = mainMenu;
+    }
+
 
 }
