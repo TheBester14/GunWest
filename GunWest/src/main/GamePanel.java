@@ -68,6 +68,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void updateGame() {
         move();
         checkCollision();
+        this.player.update();
     }
 
     private void move() {

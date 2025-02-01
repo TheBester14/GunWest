@@ -8,15 +8,15 @@ import main.GamePanel;
 import main.KeyHandler;
 
 public abstract class Entity {
-	private KeyHandler keyHandler;
-	private GamePanel gp;
-	private int x;
-	private int y;
-	private int width;
-	private int height;
-	private int speed;
-	private int health;
-	private BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
+	protected KeyHandler keyHandler;
+	protected GamePanel gp;
+	protected int x;
+	protected int y;
+	protected int width;
+	protected int height;
+	protected int speed;
+	protected int health;
+	protected BufferedImage up, down, left, right, upRight, upLeft, downRight, downLeft;
 	
 	public Entity(GamePanel gp) {
 		this.gp = gp;
@@ -36,9 +36,7 @@ public abstract class Entity {
 		
 	}
 	
-	public void update() {
-		
-	}
+	abstract void update();
 	
 	public void draw(Graphics g) {
 		g.setColor(Color.cyan);

@@ -8,9 +8,18 @@ public class Player extends Entity {
 	public Player(GamePanel gp, String name) {
 		super(gp);
 		this.name = name;
+		this.speed = 5;
 	}
 	
 	public void shootBullet() {
 		
+	}
+	
+	public void update() {
+		if (this.keyHandler.upPressed) {
+			this.y -= this.speed;
+		} else if (this.keyHandler.downPressed) {
+			this.y += this.speed;
+		}
 	}
 }
