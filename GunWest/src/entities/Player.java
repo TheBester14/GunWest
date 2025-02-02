@@ -26,9 +26,12 @@ public class Player extends Entity {
     private int hp;
     private BufferedImage up1, up2;
     private int currentWeapon;
-    
+    private int id;
     // For sending network events.
     private NetworkSender networkSender;
+    
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     
     public void setNetworkSender(NetworkSender ns) {
          this.networkSender = ns;
@@ -78,8 +81,8 @@ public class Player extends Entity {
     
     @Override
     public void update() {
-        int oldX = x;
-        int oldY = y;
+        int oldX = this.x;
+        int oldY = this.y;
         
         boolean moving = false;
         if (this.keyHandler.upPressed) {
@@ -124,7 +127,7 @@ public class Player extends Entity {
         }
         
         // Check collision with tiles.
-        if (collisionChecker()) {
+        if (collisionChecker() || boundChecker()) {
             x = oldX;
             y = oldY;
         }
@@ -156,7 +159,9 @@ public class Player extends Entity {
     }
     
     public boolean collisionChecker() {
-        Rectangle playerRect = new Rectangle(x, y, width, height);
+    	int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        Rectangle playerRect = new Rectangle(trueX, trueY, this.width/2, this.height/2);
         
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {
             for (int col = 0; col < tileM.gp.maxWorldCol; col++) {
@@ -171,6 +176,7 @@ public class Player extends Entity {
                         tileM.gp.tileSize,
                         tileM.gp.tileSize
                     );
+                    
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
@@ -178,6 +184,20 @@ public class Player extends Entity {
             }
         }
         return false;
+    }
+    
+    private boolean boundChecker() {
+        int panelWidth = 1280;
+        int panelHeight = 704;
+
+        int objectWidth = this.width / 2;
+        int objectHeight = this.height / 2;
+
+        int newX = this.x + (width - objectWidth) / 2;
+        int newY = this.y + (height - objectHeight) / 2;
+
+        return (newX < 0 || newX > panelWidth - objectWidth ||
+        		newY < 0 || newY > panelHeight - objectHeight);
     }
     
     @Override
@@ -195,6 +215,10 @@ public class Player extends Entity {
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
         
+        int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        g.drawRect(trueX, trueY, this.width/2, this.height/2);
+        
         // Draw bullets.
         for (Bullet bullet : bullets) {
             bullet.draw(g);
@@ -204,41 +228,53 @@ public class Player extends Entity {
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
         int damage = 0;
-        
-        switch(this.currentWeapon) {
-	        case 0:
-	          damage = 240;
-	          this.fireDelay = 1200;
-	          break;
-	        case 1:
-	          damage = 60;
-	          this.fireDelay = 650;
-	          break;
-	        case 2:
-	          damage = 30;
-	          this.fireDelay = 400;
-	          break;
-	        default:
-	          damage = 60;
-	      }
-        
+
+        switch (this.currentWeapon) {
+            case 0:
+                damage = 240; // e.g. sniper
+                this.fireDelay = 1200;
+                break;
+            case 1:
+                damage = 60;  // e.g. shotgun
+                this.fireDelay = 650;
+                break;
+            case 2:
+                damage = 30;  // e.g. pistol
+                this.fireDelay = 400;
+                break;
+            default:
+                damage = 60;
+        }
+
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
+            // Pass the player's ID as the last param if you have a getId() method:
+            // e.g., newBullet = new Bullet(..., damage, this.getId());
             Bullet newBullet = new Bullet(
                 x + width / 2,
                 y + height / 2,
                 8,
                 angle,
                 tileM,
-                damage
+
+
+                damage,
+               this.getId() 
+
             );
             bullets.add(newBullet);
             lastShot = currentTime;
-            // Send bullet event over the network if available.
+            
+            // Send bullet event over the network
             if (networkSender != null) {
-                networkSender.sendToServer("BULLET " + (x + width / 2) + " " + (y + height / 2) + " " + angle);
+                networkSender.sendToServer("BULLET " 
+                    + (x + width / 2) + " " 
+                    + (y + height / 2) + " " 
+                    + angle
+                );
             }
         }
     }
+
     
     public double getAngle() {
         return angle;

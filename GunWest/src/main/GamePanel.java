@@ -4,125 +4,126 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
 import tile.TileManager;
+import entities.Bullet;
 import entities.Player;
 
 public class GamePanel extends JPanel implements Runnable {
     public static final int SCREEN_WIDTH = 1280;
     public static final int SCREEN_HEIGHT = 704;
     public static final Dimension SCREEN_SIZE = new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+
     public final int tileSize = 32;
-    public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 columns
-    public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 rows
+    public final int maxWorldCol = SCREEN_WIDTH / tileSize;
+    public final int maxWorldRow = SCREEN_HEIGHT / tileSize;
 
     private Thread gameThread;
-    
+
     public MouseHandler mouseHandler;
     public KeyHandler keyHandler;
     public Player player;
     public TileManager tileManager;
-
     public UI ui;
 
-    
-    // For networking: a reference to the network client (if set)
     private network.Client netClient;
-    
-    // Remote players: mapping from player ID to RemotePlayer.
-    // (They are used for drawing remote players including their rotation and bullets.)
     public Map<Integer, RemotePlayer> remotePlayers;
 
-    // For sending rotation updates.
     private double lastSentAngle;
-
+    private int myId; // local player's ID
 
     public GamePanel() {
         keyHandler = new KeyHandler();
         mouseHandler = new MouseHandler();
         tileManager = new TileManager(this);
         player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
-        // Set initial lastSentAngle to player's starting angle.
         lastSentAngle = player.getAngle();
 
         remotePlayers = new HashMap<>();
-        
-        this.setPreferredSize(SCREEN_SIZE);
-        this.setBackground(Color.BLACK);
-        this.setFocusable(true);
-        this.addKeyListener(keyHandler);
-        this.addMouseMotionListener(mouseHandler);
 
-        this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
+        setPreferredSize(SCREEN_SIZE);
+        setBackground(Color.BLACK);
+        setFocusable(true);
+        addKeyListener(keyHandler);
+        addMouseMotionListener(mouseHandler);
+        addMouseListener(mouseHandler);
+
         ui = new UI(this, player);
 
-        this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
-        
-        // When the panel is clicked, request focus.
-        this.addMouseListener(new java.awt.event.MouseAdapter() {
+        // Focus logic
+        addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
                 requestFocusInWindow();
             }
         });
-        
-        this.requestFocusInWindow();
-        
+        requestFocusInWindow();
+
         gameThread = new Thread(this);
         gameThread.start();
     }
-    
-    // Called by the network client to provide a reference.
+
     public void setNetworkClient(network.Client client) {
         this.netClient = client;
-        // Also pass the network sender to the local player.
         player.setNetworkSender(client);
     }
-    
-    // Called by the network client when a remote player's position update is received.
+
+    public void setMyId(int id) {
+        this.myId = id;
+        // Optionally, if you want Player to have the same id:
+        player.setId(id);
+    }
+
+    // Called by the client when receiving an UPDATE x,y
     public void updateRemotePlayer(int id, int x, int y) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setPosition(x, y);
         } else {
-            remotePlayers.put(id, new RemotePlayer(x, y));
+            // Pass tileManager so remote bullets also do tile collisions
+            RemotePlayer rp = new RemotePlayer(x, y, tileManager);
+            rp.setId(id);
+            remotePlayers.put(id, rp);
         }
     }
-    
-    // Called by the network client when a remote player's rotation update is received.
+
+    // Called by the client when receiving ROTATE
     public void updateRemotePlayerRotation(int id, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setAngle(angle);
         }
     }
-    
-    // Called by the network client when a remote player fires a bullet.
+
+    // Called by the client when receiving a BULLET message
     public void remotePlayerBulletFired(int id, int startX, int startY, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).fireBullet(startX, startY, angle);
         }
     }
-    
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        
-        // Draw the tile map.
+
         tileManager.draw(g2);
-        
-        // Draw the local player.
-        player.draw(g2);
-        
-        ui.draw(g);
-        // Draw remote players.
-        for(RemotePlayer rp : remotePlayers.values()) {
-            rp.update();  // update bullet positions, etc.
-            rp.draw(g2);
+
+        // Draw local player only if HP>100 (your condition)
+        if (player.getHp() > 100) {
+            player.draw(g2);
         }
-        
+        ui.draw(g);
+
+        for (RemotePlayer rp : remotePlayers.values()) {
+            rp.update(); // update remote bullets, remove destroyed ones
+            // Draw remote player if HP>100
+            if (rp.getHp() > 100) {
+                rp.draw(g2);
+            }
+        }
+
         g2.dispose();
     }
 
@@ -130,7 +131,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         long lastTime = System.nanoTime();
         double targetFPS = 60.0;
-        double nsPerFrame = 1000000000 / targetFPS;
+        double nsPerFrame = 1_000_000_000 / targetFPS;
         double delta = 0;
 
         while (true) {
@@ -146,26 +147,55 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    // Update the game: process local player movement and send MOVE/ROTATE commands.
     private void updateGame() {
         int oldX = player.getX();
         int oldY = player.getY();
-        
+
         player.update();
-        
+
         int dx = player.getX() - oldX;
         int dy = player.getY() - oldY;
-        
-        // If movement occurred, send a MOVE command.
-        if(netClient != null && (dx != 0 || dy != 0)) {
+
+        if (netClient != null && (dx != 0 || dy != 0)) {
             netClient.sendToServer("MOVE " + dx + " " + dy);
         }
-        
-        // Check if rotation has changed significantly.
         double currentAngle = player.getAngle();
-        if(netClient != null && Math.abs(currentAngle - lastSentAngle) > 0.01) {
+        if (netClient != null && Math.abs(currentAngle - lastSentAngle) > 0.01) {
             netClient.sendToServer("ROTATE " + currentAngle);
             lastSentAngle = currentAngle;
+        }
+
+        // 1) local bullets vs remote players
+        for (int i = player.getBullets().size() - 1; i >= 0; i--) {
+            Bullet bullet = player.getBullets().get(i);
+            Rectangle bulletRect = new Rectangle(bullet.x, bullet.y, bullet.width, bullet.height);
+            for (RemotePlayer rp : remotePlayers.values()) {
+                if (bulletRect.intersects(rp.getBounds()) && bullet.getOwnerId() != rp.getId()) {
+                    netClient.sendToServer("DAMAGE " + rp.getId() + " " + bullet.getDamage());
+                    bullet.setDestroyed(true);
+                }
+            }
+        }
+        // remove destroyed local bullets
+        player.getBullets().removeIf(Bullet::isDestroyed);
+
+        // 2) remote bullets vs local player
+        Rectangle localBounds = player.getBounds();
+        for (RemotePlayer rp : remotePlayers.values()) {
+            // remote bullets tile collisions are in RemoteBullet.update()
+            // so we just remove them if isDestroyed() is true
+
+            for (int i = rp.getBullets().size() - 1; i >= 0; i--) {
+                RemoteBullet rb = rp.getBullets().get(i);
+                Rectangle rbRect = new Rectangle((int)rb.getX(), (int)rb.getY(), rb.getSize(), rb.getSize());
+                if (rbRect.intersects(localBounds) && rb.getOwnerId() != myId) {
+                    // e.g. always 30 damage from remote bullets
+                    netClient.sendToServer("DAMAGE " + myId + " 30");
+                    rb.setDestroyed(true);
+                }
+            }
+            // remove destroyed remote bullets
+            rp.getBullets().removeIf(RemoteBullet::isDestroyed);
         }
     }
 }
