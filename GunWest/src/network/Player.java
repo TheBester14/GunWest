@@ -2,6 +2,7 @@ package network;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Player {
     private Socket socket;
@@ -50,4 +51,32 @@ public class Player {
         output.close();
         socket.close();
     }
+
+	public Socket getSocket() { return socket; }
+	
+	public void sendAudio(byte[] audioData) {
+	    try {
+	        OutputStream out = socket.getOutputStream();
+	        out.write(audioData);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	public byte[] receiveAudio() {
+	    try {
+	        InputStream in = socket.getInputStream();
+	        byte[] buffer = new byte[4096];
+	        int bytesRead = in.read(buffer);
+	        if (bytesRead > 0) {
+	            return Arrays.copyOf(buffer, bytesRead);
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
+	
 }
+

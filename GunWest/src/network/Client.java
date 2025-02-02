@@ -2,13 +2,18 @@ package network;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
+
 import javax.swing.JOptionPane;
 import main.GamePanel;
+import javax.sound.sampled.*;
 
 public class Client implements NetworkSender {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
+    private TargetDataLine microphone;
+    private SourceDataLine speakers;
     
     // My player ID as assigned by the server.
     private int myId = -1;
@@ -35,14 +40,15 @@ public class Client implements NetworkSender {
             return;
         }
         
+       
         try {
             socket = new Socket(host, 5000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
+
             // Send the username to the server.
             out.println(username);
-            
+            startAudio();
             // Start a thread to listen for messages from the server.
             new Thread(() -> listenToServer()).start();
         } catch(IOException e) {
@@ -52,9 +58,21 @@ public class Client implements NetworkSender {
     
     private void listenToServer() {
         try {
-            String line;
-            while ((line = in.readLine()) != null) {
-                handleServerMessage(line);
+        	InputStream in2 = socket.getInputStream();
+            byte[] buffer = new byte[4096];
+            while (true) {
+                int bytesRead = in2.read(buffer);
+
+                // Check if the data starts with "AUDIO:"
+                if (new String(buffer, 0, 6).equals("AUDIO:")) {
+                    // Extract the audio data (skip the "AUDIO:" prefix)
+                    byte[] audioData = Arrays.copyOfRange(buffer, 6, bytesRead);
+                    speakers.write(audioData, 0, audioData.length);
+                } else {
+                    // Treat it as a text message
+                    String message = in.readLine();
+                    handleServerMessage(message);
+                }
             }
         } catch(IOException e) {
             System.out.println("Disconnected from server.");
@@ -107,10 +125,86 @@ public class Client implements NetworkSender {
             String chatLine = message.substring(4).trim();
             System.out.println(chatLine);
         }
-        else {
+        else  if(message.startsWith("AUDIO")) {
+            byte[] audioData = message.substring(5).getBytes();
+            speakers.write(audioData, 0, audioData.length);
+        } else{
             System.out.println("Server> " + message);
         }
     }
+    
+    public void startAudio() {
+        try {
+            AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            microphone = (TargetDataLine) AudioSystem.getLine(info);
+            microphone.open(format);
+            microphone.start();
+
+            info = new DataLine.Info(SourceDataLine.class, format);
+            speakers = (SourceDataLine) AudioSystem.getLine(info);
+            speakers.open(format);
+            speakers.start();
+
+            new Thread(() -> captureAudio()).start();
+            new Thread(() -> playAudio()).start();
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void captureAudio() {
+    	 byte[] buffer = new byte[4096];
+    	    while (true) {
+    	        int bytesRead = microphone.read(buffer, 0, buffer.length);
+    	        if (bytesRead > 0) {
+    	            // Prefix the audio data with "AUDIO:"
+    	            String header = "AUDIO:";
+    	            byte[] headerBytes = header.getBytes();
+    	            byte[] combined = new byte[headerBytes.length + bytesRead];
+    	            System.arraycopy(headerBytes, 0, combined, 0, headerBytes.length);
+    	            System.arraycopy(buffer, 0, combined, headerBytes.length, bytesRead);
+    	            sendToServer(combined);
+            }
+        }
+    }
+
+    private void sendToServer(byte[] combined) {
+    	if (out != null) {
+            try {
+                OutputStream outputStream = socket.getOutputStream();
+                outputStream.write(combined); // Send the raw byte array
+                outputStream.flush(); // Ensure the data is sent immediately
+            } catch (IOException e) {
+                System.err.println("Error sending data to server: " + e.getMessage());
+            }
+	}
+    }
+
+	private void playAudio() {
+        byte[] buffer = new byte[4096];
+        while (true) {
+            byte[] audioData = receiveAudio();
+            if (audioData != null) {
+                speakers.write(audioData, 0, audioData.length);
+            }
+        }
+    }
+    
+    private byte[] receiveAudio() {
+        try {
+            InputStream in = socket.getInputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead = in.read(buffer);
+            if (bytesRead > 0) {
+                return Arrays.copyOf(buffer, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     
     @Override
     public void sendToServer(String msg) {
@@ -119,4 +213,5 @@ public class Client implements NetworkSender {
             out.println(msg);
         }
     }
+    
 }
