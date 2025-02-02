@@ -25,6 +25,9 @@ public class GamePanel extends JPanel implements Runnable {
     public KeyHandler keyHandler;
     public Player player;
     public TileManager tileManager;
+
+    public UI ui;
+
     
     // For networking: a reference to the network client (if set)
     private network.Client netClient;
@@ -35,6 +38,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // For sending rotation updates.
     private double lastSentAngle;
+
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -51,6 +55,10 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);
         this.addKeyListener(keyHandler);
         this.addMouseMotionListener(mouseHandler);
+
+        this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
+        ui = new UI(this, player);
+
         this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
         
         // When the panel is clicked, request focus.
@@ -108,6 +116,7 @@ public class GamePanel extends JPanel implements Runnable {
         // Draw the local player.
         player.draw(g2);
         
+        ui.draw(g);
         // Draw remote players.
         for(RemotePlayer rp : remotePlayers.values()) {
             rp.update();  // update bullet positions, etc.

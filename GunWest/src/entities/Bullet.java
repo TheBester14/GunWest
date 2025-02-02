@@ -9,11 +9,12 @@ import tile.TileManager;
 public class Bullet extends Entity {
     private double angle;     
     private int speed;
-    private boolean destroyed;  
+    private boolean destroyed;
+    private int damage;
     
     private TileManager tileM;  
 
-    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM) {
+    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM, int damage) {
         this.x = startX;
         this.y = startY;
         this.speed = speed;
@@ -24,6 +25,7 @@ public class Bullet extends Entity {
         
         this.tileM = tileM;
         this.destroyed = false;  
+        this.damage = damage;
     }
     
     @Override
@@ -81,4 +83,40 @@ public class Bullet extends Entity {
         }
         return false;
     }
+
+	public double getAngle() {
+		return angle;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
+
+	public TileManager getTileM() {
+		return tileM;
+	}
+
+	public void setTileM(TileManager tileM) {
+		this.tileM = tileM;
+	}
+
+	public void setDestroyed(boolean destroyed) {
+		this.destroyed = destroyed;
+	}
+
+	public int getDamage() {
+		return damage;
+	}
+
+	public void setDamage(int damage) {
+		this.damage = damage;
+	}
 }
