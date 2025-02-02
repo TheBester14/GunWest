@@ -1,6 +1,11 @@
 package main;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import entities.Player;
 
 public class UI {
@@ -8,12 +13,14 @@ public class UI {
 	private Player player;
 	private int[] score;
 	private int hp;
+	private BufferedImage fullHeart, halfHeart, emptyHeart;
+	private BufferedImage sniper, shotgun, pistol;
 	
 	public UI(GamePanel gp, Player player) {
 		this.gp = gp;
 		this.player = player;
-		this.lives = 3;
-		this.score = new Int{0, 0};
+		this.hp = player.getHp();
+		this.score = new int[]{0, 0};
 	}
 	
 	private void drawLives(Graphics g) {
@@ -32,5 +39,14 @@ public class UI {
 		
 	}
 	
-	public 
+	private BufferedImage setup(String filePath) {
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(getClass().getResourceAsStream(filePath));
+        } catch (IOException e) {
+            System.out.println("Could not obtain filePath to load image: " + filePath);
+            e.printStackTrace();
+        }
+        return image;
+    } 
 }
