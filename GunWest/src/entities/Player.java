@@ -215,10 +215,6 @@ public class Player extends Entity {
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
         
-        int trueX = this.x + (this.width - this.width / 2) / 2;
-        int trueY = this.y + (this.height - this.height / 2) / 2;
-        g.drawRect(trueX, trueY, this.width/2, this.height/2);
-        
         // Draw bullets.
         for (Bullet bullet : bullets) {
             bullet.draw(g);
@@ -255,8 +251,6 @@ public class Player extends Entity {
                 8,
                 angle,
                 tileM,
-
-
                 damage,
                this.getId() 
 
