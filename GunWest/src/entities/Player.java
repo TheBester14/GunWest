@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import main.GamePanel;
 import main.KeyHandler;
 import main.MouseHandler;
+import main.Sound;
 import tile.TileManager;
 import network.NetworkSender;
 
@@ -149,22 +150,34 @@ public class Player extends Entity {
         
         double newAngle = Math.atan2(dy, dx) + Math.PI / 2;
         angle = newAngle;
-        
+
+        Sound soundEffect = new Sound();
         // *** Added shooting check ***
         if (mouseHandler.isLeftDown()) {
             shootBullet(angle);
             if(this.getCurrentWeapon() == 0) {
-            	   gp.playSE(3);
+            	soundEffect.setFile(3);
+            	soundEffect.playAsync();
+            	soundEffect.setVolume(0.02f);
+            	soundEffect.stop();
             }
             else if(this.getCurrentWeapon() == 1) {
-         	   gp.playSE(2);
+            	soundEffect.setFile(2);
+            	soundEffect.playAsync();
+            	soundEffect.setVolume(0.02f);
+            	soundEffect.stop();
          }
             else if(this.getCurrentWeapon() == 2) {
-         	   gp.playSE(1);
+            	soundEffect.setFile(1);
+            	soundEffect.playAsync();
+            	soundEffect.setVolume(0.02f);
+            	soundEffect.stop();
          }
             else {
-    
-               	   gp.playSE(1);
+            	soundEffect.setFile(1);
+            	soundEffect.playAsync();
+            	soundEffect.setVolume(0.02f);
+            	soundEffect.stop();
             
         }}
         
@@ -200,6 +213,8 @@ public class Player extends Entity {
                     if (tileIndex == 5 && playerRect.intersects(tileRect)) {
                         tileM.mapTileNumber[col][row] = 0;
                         this.speed += 1;
+                        // star soundf
+                        gp.playSE(4);
                     }
                     
                     if (playerRect.intersects(tileRect)) {

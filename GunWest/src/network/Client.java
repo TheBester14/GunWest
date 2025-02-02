@@ -9,62 +9,80 @@ public class Client implements NetworkSender {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    
+
     private int myId = -1;
     private GamePanel gamePanel;
-    
-    private String myUsername;  // So we can store & pass to local player
+
+    private String myUsername;  // store local player's chosen username
 
     public void setGamePanel(GamePanel gp) {
         this.gamePanel = gp;
-        // Pass the client reference so the GamePanel can call sendToServer(...)
+        // pass the client reference so the GamePanel can call sendToServer(...)
         gamePanel.setNetworkClient(this);
     }
-    
+
     public String getUsername() {
         return myUsername;
     }
 
+    /**
+     * Prompt the user for server IP and username, then connect.
+     */
     public void start() {
-        // Prompt for server IP and username
-        String host = JOptionPane.showInputDialog(null, "Enter server IP:", 
-            "Server IP", JOptionPane.QUESTION_MESSAGE);
+        // Prompt for server IP
+        String host = JOptionPane.showInputDialog(
+            null, "Enter server IP:", "Server IP",
+            JOptionPane.QUESTION_MESSAGE
+        );
         if (host == null || host.isEmpty()) {
             System.out.println("No server IP provided. Exiting.");
             return;
         }
-        myUsername = JOptionPane.showInputDialog(null, "Enter username:", 
-            "Username", JOptionPane.QUESTION_MESSAGE);
+
+        // Prompt for username
+        myUsername = JOptionPane.showInputDialog(
+            null, "Enter username:", "Username",
+            JOptionPane.QUESTION_MESSAGE
+        );
         if (myUsername == null || myUsername.isEmpty()) {
             System.out.println("No username provided. Exiting.");
             return;
         }
-        
+
         try {
+            // Connect to server
             socket = new Socket(host, 5000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
-            // First thing: send the username to server
+
+            // First, send the username to server
             out.println(myUsername);
 
+            // Start a thread to read messages from the server
             new Thread(this::listenToServer).start();
-        } catch(IOException e) {
+
+        } catch (IOException e) {
             System.err.println("Could not connect to server: " + e.getMessage());
         }
     }
-    
+
+    /**
+     * Continuously read lines from the server until disconnected.
+     */
     private void listenToServer() {
         try {
             String line;
             while ((line = in.readLine()) != null) {
                 handleServerMessage(line);
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             System.out.println("Disconnected from server.");
         }
     }
-    
+
+    /**
+     * Handle all server messages that come in.
+     */
     private void handleServerMessage(String message) {
         if (message.startsWith("WELCOME")) {
             // WELCOME <id> <x> <y>
@@ -73,16 +91,16 @@ public class Client implements NetworkSender {
             int startX = Integer.parseInt(parts[2]);
             int startY = Integer.parseInt(parts[3]);
 
+            // Set local player position and ID
             gamePanel.player.setX(startX);
             gamePanel.player.setY(startY);
             gamePanel.setMyId(myId);
-            
+
             // Also set our local player's name to the username we typed
             gamePanel.player.setName(myUsername);
 
         } else if (message.startsWith("NAME")) {
             // NAME <id> <username>
-            // So we can store each player's name in either local or remote
             String[] parts = message.split(" ", 3);
             int id = Integer.parseInt(parts[1]);
             String name = parts[2];
@@ -92,15 +110,10 @@ public class Client implements NetworkSender {
                 gamePanel.player.setName(name);
             } else {
                 // It's a remote player
-                // If we haven't created them yet in "UPDATE", we could do so or
-                // store just the name. But typically "UPDATE" or "REMOTE" creation
-                // happens first. We'll store name in the existing remote if possible:
                 if (gamePanel.remotePlayers.containsKey(id)) {
                     gamePanel.remotePlayers.get(id).setName(name);
                 } else {
-                    // If the remote player doesn't exist yet,
-                    // create a placeholder at (0,0) or so
-                    // The real position will come from an "UPDATE" or "WELCOME"
+                    // If not created yet, create a placeholder
                     gamePanel.updateRemotePlayer(id, 600, 600);
                     gamePanel.remotePlayers.get(id).setName(name);
                 }
@@ -114,7 +127,6 @@ public class Client implements NetworkSender {
             int y  = Integer.parseInt(parts[3]);
 
             if (id == myId) {
-                // Force local position = server position if you want
                 gamePanel.player.setX(x);
                 gamePanel.player.setY(y);
             } else {
@@ -127,7 +139,6 @@ public class Client implements NetworkSender {
             int id = Integer.parseInt(parts[1]);
             double angle = Double.parseDouble(parts[2]);
             if (id == myId) {
-                // Optionally force local rotation
                 gamePanel.player.setAngle(angle);
             } else {
                 gamePanel.updateRemotePlayerRotation(id, angle);
@@ -166,7 +177,6 @@ public class Client implements NetworkSender {
             if (sid == myId) {
                 // local
                 gamePanel.player.setKills(newKills);
-                // If you want to update UI scoreboard
                 gamePanel.ui.setScore(0, newKills);
                 System.out.println("You scored a kill! (Kills=" + newKills + ")");
             } else {
@@ -179,21 +189,32 @@ public class Client implements NetworkSender {
             }
 
         } else if (message.startsWith("CHAT")) {
+            // Chat
             String chatLine = message.substring(4).trim();
-            System.out.println(chatLine); 
-        } else if (message.startsWith("GAMEOVER")) {
-            // GAMEOVER <winnerId>
-            String[] parts = message.split(" ");
-            int winnerId = Integer.parseInt(parts[1]);
+            System.out.println(chatLine);
 
-            // Let the GamePanel know the game is done
-            gamePanel.setGameOver(true, winnerId);
-        }
-        else {
+        } else if (message.startsWith("GAMEOVER")) {
+            // GAMEOVER <winnerId> <winnerUsername>
+            String[] parts = message.split(" ", 3);
+            if (parts.length < 3) {
+                // if the server didn't provide a username, fallback
+                System.err.println("GAMEOVER message missing username! " + message);
+                return;
+            }
+            int winnerId = Integer.parseInt(parts[1]);
+            String winnerUsername = parts[2];
+
+            // Now call the 3-parameter method in GamePanel
+            gamePanel.setGameOver(true, winnerId, winnerUsername);
+
+        } else {
             System.out.println("Server> " + message);
         }
     }
-    
+
+    /**
+     * Expose a method for sending any message to the server
+     */
     @Override
     public void sendToServer(String msg) {
         if (out != null) {
