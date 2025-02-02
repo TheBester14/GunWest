@@ -12,7 +12,7 @@ public class MainMenuPanel extends JPanel implements KeyListener {
     private Sound menuMusic;
     
     // The menu options
-    private String[] options = { "HOST", "JOIN", "Game Instructions" };
+    private String[] options = { "HOST", "JOIN", "Game Instructions", "Game Controls" };
     private int selectedIndex = 0;
 
     // Reference to the parent frame to switch between frames.
@@ -98,6 +98,7 @@ public class MainMenuPanel extends JPanel implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
+        	case KeyEvent.VK_UP:
             case KeyEvent.VK_W:
                 selectedIndex--;
                 if (selectedIndex < 0) {
@@ -106,6 +107,7 @@ public class MainMenuPanel extends JPanel implements KeyListener {
                 repaint();
                 break;
 
+            case  KeyEvent.VK_DOWN:
             case KeyEvent.VK_S:
                 selectedIndex++;
                 if (selectedIndex >= options.length) {
@@ -114,6 +116,7 @@ public class MainMenuPanel extends JPanel implements KeyListener {
                 repaint();
                 break;
 
+            case KeyEvent.VK_ENTER:
             case KeyEvent.VK_SPACE:
                 if (selectedIndex == 0) {
                     parentFrame.startHosting();
@@ -122,7 +125,9 @@ public class MainMenuPanel extends JPanel implements KeyListener {
                     parentFrame.startJoining();
                     menuMusic.stop();
                 } else if (selectedIndex == 2) {
-                    showInstructions(); // Show instructions when selected
+                    showInstructions();
+                } else if (selectedIndex == 3) {
+                    showControls();
                 }
                 break;
         }
@@ -134,11 +139,20 @@ public class MainMenuPanel extends JPanel implements KeyListener {
 
     // Method to display the instructions
     private void showInstructions() {
-        String instructions = "For the first 3 games, players can boost their speed with stars\n"
+        String instructions = "For the first 3 games, players can boost their speed with stars\n\n"
                 + "Players can use 3 weapons: the sniper, the shotgun & the pistol\n\n"
-                + "Pistol -> 0.5 heart | Shotgun -> 1 heart | Sniper -> 4 hearts\n\n"
+                + "Pistol -- 0.5 heart | Shotgun -- 1 heart | Sniper -- 4 hearts\n\n"
                 + "Players must shoot until a contestant achieves seven kills.";
 
         JOptionPane.showMessageDialog(this, instructions, "Game Instructions", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void showControls() {
+        String controls = "Players can use keys {1} {2} {3} to switch weapons\n\n"
+                + "{W} {S} {A} {D} are pressed for all movements\n\n"
+                + "The mouse direction dictates the bullet's direction\n\n"
+                + "The mouse's left button is used to shoot";
+
+        JOptionPane.showMessageDialog(this, controls, "Game Controls", JOptionPane.INFORMATION_MESSAGE);
     }
 }
