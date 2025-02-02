@@ -8,12 +8,17 @@ import tile.TileManager;
 public class Bullet extends Entity {
     private double angle;     
     private int speed;
+
     private boolean destroyed;  
+
+    private int damage;
+    
     private TileManager tileM;  
     private int ownerId; // New field: stores the id of the shooter.
 
     // Modified constructor: add ownerId as the last parameter.
-    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM, int ownerId) {
+
+    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM, int ownerId, int damage) {
         this.x = startX;
         this.y = startY;
         this.speed = speed;
@@ -24,6 +29,7 @@ public class Bullet extends Entity {
         this.tileM = tileM;
         this.destroyed = false;  
         this.ownerId = ownerId;
+        this.damage = damage;
     }
     
     @Override
@@ -45,9 +51,6 @@ public class Bullet extends Entity {
         return destroyed;
     }
     
-    public void setDestroyed(boolean destroyed) {
-        this.destroyed = destroyed;
-    }
     
     // New getter for ownerId.
     public int getOwnerId() {
@@ -71,4 +74,42 @@ public class Bullet extends Entity {
         }
         return false;
     }
+
+
+	public double getAngle() {
+		return angle;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
+
+	public TileManager getTileM() {
+		return tileM;
+	}
+
+	public void setTileM(TileManager tileM) {
+		this.tileM = tileM;
+	}
+
+	public void setDestroyed(boolean destroyed) {
+		this.destroyed = destroyed;
+	}
+
+	public int getDamage() {
+		return damage;
+	}
+
+	public void setDamage(int damage) {
+		this.damage = damage;
+	}
+
 }
