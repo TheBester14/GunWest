@@ -58,13 +58,11 @@ public class AudioHandler {
         }
     }
 
-    public AudioHandler(OutputStream audioOutputStream) {
+    public AudioHandler(OutputStream audioOutputStream, InputStream audioInputStream) {
         this.audioOutputStream = audioOutputStream;
-    }
-    
-    public AudioHandler(InputStream audioInputStream) {
         this.audioInputStream = audioInputStream;
     }
+    
     
     private void sendAudioData(byte[] data, int length) {
     	 try {
