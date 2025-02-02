@@ -6,7 +6,7 @@ import javax.swing.JOptionPane;
 import main.GamePanel;
 
 /**
- * A client that connects to the server on port 5000, 
+ * A client that connects to the server on port 5000,
  * and passes messages to/from the GamePanel.
  */
 public class Client implements NetworkSender {
@@ -76,14 +76,21 @@ public class Client implements NetworkSender {
                                " starting pos=(" + startX + "," + startY + ")");
         }
         else if (message.startsWith("UPDATE")) {
-            // UPDATE <id> <x> <y>
+            // "UPDATE <id> <x> <y>"
             String[] parts = message.split(" ");
             int id = Integer.parseInt(parts[1]);
             int x  = Integer.parseInt(parts[2]);
             int y  = Integer.parseInt(parts[3]);
+
+            // Only do local player's x,y if this 'UPDATE' is for me?
+            // Typically we skip it if (id == myId), 
+            // but for remote players:
             if (id != myId) {
                 gamePanel.updateRemotePlayer(id, x, y);
             }
+            // If you do skip your own ID, that is normal (the server 
+            // doesn't need to tell you your own position). 
+            // The main check is that if ID != myId, you DO call updateRemotePlayer.
         }
         else if (message.startsWith("ROTATE")) {
             // ROTATE <id> <angle>
@@ -101,9 +108,11 @@ public class Client implements NetworkSender {
             int startX  = Integer.parseInt(parts[2]);
             int startY  = Integer.parseInt(parts[3]);
             double bulletAngle = Double.parseDouble(parts[4]);
-            if (ownerId != myId) {
-                gamePanel.remotePlayerBulletFired(ownerId, startX, startY, bulletAngle);
-            }
+            
+            // ***** FIXED: remove the "if (ownerId != myId)" check *****
+            // Now we always spawn the bullet from the server message,
+            // so that everyone sees every bullet (including the shooter).
+            gamePanel.remotePlayerBulletFired(ownerId, startX, startY, bulletAngle);
         }
         else if (message.startsWith("HPUPDATE")) {
             // HPUPDATE <id> <hp>
@@ -121,12 +130,12 @@ public class Client implements NetworkSender {
         else if (message.startsWith("CHAT")) {
             String chatLine = message.substring(4).trim();
             System.out.println(chatLine);
-        } else if (message.startsWith("SCOREUPDATE")) {
+        } 
+        else if (message.startsWith("SCOREUPDATE")) {
             // e.g. "SCOREUPDATE <id> <score>"
             String[] parts = message.split(" ");
             int id = Integer.parseInt(parts[1]);
             int newScore = Integer.parseInt(parts[2]);
-            // if it's me
             if (id == myId) {
                 gamePanel.player.setScore(newScore);
             } else {
@@ -134,20 +143,16 @@ public class Client implements NetworkSender {
                     gamePanel.remotePlayers.get(id).setScore(newScore);
                 }
             }
-        } 
+        }
         else if (message.startsWith("ROUNDRESET")) {
-            // The server wants us to remove any bullets, 
-            // or do any logic to reset UI, etc.
-            // We'll call a function in GamePanel:
             gamePanel.resetRoundLocally();
         }
         else if (message.startsWith("GAMEOVER")) {
             // e.g. "GAMEOVER <winnerId>"
             String[] parts = message.split(" ");
             int winnerId = Integer.parseInt(parts[1]);
-            // show a message, prevent more input, etc
             System.out.println("Server says: Game Over! Player " + winnerId + " wins!");
-            gamePanel.setGameOver(true); // we can define that in gamePanel
+            gamePanel.setGameOver(true);
         }
         else {
             System.out.println("Server> " + message);

@@ -111,7 +111,7 @@ public class Server {
                         double angle = Double.parseDouble(parts[1]);
                         player.setAngle(angle);
                         broadcast("ROTATE " + player.getPlayerId() + " " 
-                                  + angle, player.getPlayerId());
+                                  + angle, -1);
                     }
                 }
                 else if (message.toUpperCase().startsWith("BULLET")) {
@@ -121,8 +121,9 @@ public class Server {
                         int startX = Integer.parseInt(parts[1]);
                         int startY = Integer.parseInt(parts[2]);
                         double bulletAngle = Double.parseDouble(parts[3]);
-                        broadcast("BULLET " + player.getPlayerId() + " " + startX 
-                                  + " " + startY + " " + bulletAngle, player.getPlayerId());
+                        // BROADCAST TO *ALL* PLAYERS (use -1) so even the shooter gets the message
+                        broadcast("BULLET " + player.getPlayerId() + " " + startX
+                                  + " " + startY + " " + bulletAngle, -1);
                     }
                 }
                 else if (message.toUpperCase().startsWith("DAMAGE")) {
@@ -214,13 +215,15 @@ public class Server {
         broadcast("ROUNDRESET", -1);
     }
 
-    private void broadcast(String message, int senderId) {
+    private void broadcast(String msg, int senderId) {
         for (Player p : players) {
-            if (p.getPlayerId() != senderId) {
-                p.sendMessage(message);
+            // send to everyone except the 'senderId' if senderId != -1
+            if (senderId == -1 || p.getPlayerId() != senderId) {
+                p.sendMessage(msg);
             }
         }
     }
+
 
     public void close() throws IOException {
         serverSocket.close();
