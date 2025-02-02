@@ -15,6 +15,7 @@ public class Sound {
 		soundURL[1]  = getClass().getResource("/sounds/RevolverSound.wav");
 		soundURL[2]  = getClass().getResource("/sounds/ShotgunSound.wav");
 		soundURL[3]  = getClass().getResource("/sounds/SniperSound.wav");
+		soundURL[4]  = getClass().getResource("/sounds/CoinSound.wav");
 	
 	}
 	
@@ -30,14 +31,20 @@ public class Sound {
 	}
 	
 	public void play() {
-		clip.start();
-	}
-	
-	public void loop() {
-		clip.loop(Clip.LOOP_CONTINUOUSLY);
-	}
-	
-	public void stop() {
-		clip.stop();
-	}
+        if (clip != null) {
+            clip.start();
+        }
+    }
+
+    public void loop() {
+        if (clip != null) {
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+
+    public void stop() {
+        if (clip != null) {
+            clip.stop();
+        }
+    }
 }

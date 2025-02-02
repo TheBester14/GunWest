@@ -197,6 +197,8 @@ public class Player extends Entity {
                     if (tileIndex == 5 && playerRect.intersects(tileRect)) {
                         tileM.mapTileNumber[col][row] = 0;
                         this.speed += 1;
+                        // star soundf
+                        gp.playSE(4);
                     }
                     
                     if (playerRect.intersects(tileRect)) {
