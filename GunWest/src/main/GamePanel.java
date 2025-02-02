@@ -2,6 +2,7 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -28,7 +29,12 @@ public class GamePanel extends JPanel implements Runnable {
     public Player player;
     public TileManager tileManager;
     public UI ui;
-
+    private boolean gameOver = false;
+    private int winnerId = -1;
+    public void setGameOver(boolean isOver, int winnerId) {
+        this.gameOver = isOver;
+        this.winnerId = winnerId;
+    }
     private network.Client netClient;
     public Map<Integer, RemotePlayer> remotePlayers;
 
@@ -39,7 +45,7 @@ public class GamePanel extends JPanel implements Runnable {
         keyHandler = new KeyHandler();
         mouseHandler = new MouseHandler();
         tileManager = new TileManager(this);
-        player = new Player(keyHandler, mouseHandler, tileManager, "Adnane", this);
+        player = new Player(keyHandler, mouseHandler, tileManager, "", this);
         lastSentAngle = player.getAngle();
 
         remotePlayers = new HashMap<>();
@@ -102,6 +108,18 @@ public class GamePanel extends JPanel implements Runnable {
             remotePlayers.get(id).fireBullet(startX, startY, angle);
         }
     }
+    public void updateRemotePlayerName(int id, String name) {
+        if (remotePlayers.containsKey(id)) {
+            remotePlayers.get(id).setName(name);
+        } else {
+            // create them if needed
+            RemotePlayer rp = new RemotePlayer(600, 600, tileManager);
+            rp.setId(id);
+            rp.setName(name);
+            remotePlayers.put(id, rp);
+        }
+    }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -110,22 +128,43 @@ public class GamePanel extends JPanel implements Runnable {
 
         tileManager.draw(g2);
 
-        // Draw local player only if HP>0
+        // Draw local player
         if (player.getHp() > 0) {
             player.draw(g2);
         }
         ui.draw(g);
 
+        // Draw remote players
         for (RemotePlayer rp : remotePlayers.values()) {
-            rp.update(); // update remote bullets, remove destroyed ones
-            // Draw remote player if HP>0
+            rp.update(); 
             if (rp.getHp() > 0) {
                 rp.draw(g2);
             }
         }
 
+        // If gameOver, show big text
+        if (gameOver) {
+            g2.setColor(new Color(0, 0, 0, 150));
+            g2.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Arial", Font.BOLD, 50));
+
+            // E.g. if winnerId = 0 => "Player 1" or you can do "Username won!"
+            String winnerText = "Player " + (winnerId + 1) + " WON!";
+            // Center it on screen
+            int textWidth  = g2.getFontMetrics().stringWidth(winnerText);
+            int textHeight = g2.getFontMetrics().getAscent();
+
+            int centerX = (SCREEN_WIDTH - textWidth) / 2;
+            int centerY = (SCREEN_HEIGHT - textHeight) / 2;
+
+            g2.drawString(winnerText, centerX, centerY);
+        }
+
         g2.dispose();
     }
+
 
     @Override
     public void run() {
@@ -166,6 +205,8 @@ public class GamePanel extends JPanel implements Runnable {
 	}
 
     private void updateGame() {
+    	
+    	if (gameOver) {return;}
         int oldX = player.getX();
         int oldY = player.getY();
 

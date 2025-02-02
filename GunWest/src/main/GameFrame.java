@@ -62,10 +62,12 @@ public class GameFrame extends JFrame {
         network.Client client = new network.Client();
         client.setGamePanel(gamePanel);
         client.start();
+        
         setContentPane(gamePanel);
         pack();
         gamePanel.requestFocusInWindow();
     }
+
 
     
     public GamePanel getGamePanel() {

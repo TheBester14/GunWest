@@ -248,6 +248,7 @@ public class Player extends Entity {
         g.setColor(Color.BLACK);
         g.setFont(new Font("Orbitron", Font.BOLD, 17));
         g.drawString(this.name, this.x - 8, this.y - 5);
+
     }
     
     public void shootBullet(double angle) {

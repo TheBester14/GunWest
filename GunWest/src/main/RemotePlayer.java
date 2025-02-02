@@ -1,5 +1,8 @@
 package main;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -19,8 +22,17 @@ public class RemotePlayer {
     private List<RemoteBullet> bullets;
     private int hp = 240; // default
     private TileManager tileM; // used for tile collisions in remote bullets
+    private String name = "";
 
-    // Constructor that takes tileManager
+    public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	// Constructor that takes tileManager
     public RemotePlayer(int x, int y, TileManager tm) {
         this.x = x;
         this.y = y;
@@ -75,20 +87,31 @@ public class RemotePlayer {
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+
         int centerX = x + width / 2;
         int centerY = y + height / 2;
 
+        // Draw the sprite with rotation
         g2.translate(centerX, centerY);
         g2.rotate(angle);
         g2.drawImage(sprite, -width/2, -height/2, width, height, null);
         g2.rotate(-angle);
         g2.translate(-centerX, -centerY);
 
-        // draw bullets
+        // Draw bullets
         for (RemoteBullet bullet : bullets) {
             bullet.draw(g2);
         }
+
+        // Reset alpha if needed (e.g. 1.0f for full opacity)
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Orbitron", Font.BOLD, 17));
+        // Optionally center text over the sprite. For simplicity, just offset slightly.
+        g2.drawString(this.name, x + 5, y - 5);
     }
+
 
     public Rectangle getBounds() {
         return new Rectangle(x, y, width, height);
