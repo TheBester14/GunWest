@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 
 /**
- * Represents a server-side player. We add 'score' to track kills.
+ * The server-side "Player" storing ID, x,y, angle, HP, etc.
  */
 public class Player {
     private Socket socket;
@@ -16,8 +16,9 @@ public class Player {
     private int x, y;
     private double angle;
     
+    // For HP, scoring, etc.:
     private int hp = 240;
-    private int score = 0; // new
+    private int score = 0;
 
     public Player(Socket socket, int playerId, String username) throws IOException {
         this.socket = socket;
@@ -28,20 +29,18 @@ public class Player {
         this.angle = 0.0;
     }
 
-    public void sendMessage(String message) {
-        output.println(message);
+    public void sendMessage(String msg) {
+        output.println(msg);
     }
-    
     public String receiveMessage() throws IOException {
         return input.readLine();
     }
-    
     public void close() throws IOException {
         input.close();
         output.close();
         socket.close();
     }
-    
+
     // getters / setters
     public int getPlayerId() { return playerId; }
     public String getUsername() { return username; }
@@ -55,8 +54,6 @@ public class Player {
     
     public int getHp() { return hp; }
     public void setHp(int hp) { this.hp = Math.max(0,hp); }
-    public void takeDamage(int dmg) { setHp(this.hp - dmg); }
-    
     public int getScore() { return score; }
-    public void setScore(int newScore) { this.score = newScore; }
+    public void setScore(int s) { score = s; }
 }

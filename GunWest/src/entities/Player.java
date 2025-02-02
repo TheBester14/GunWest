@@ -64,6 +64,25 @@ public class Player extends Entity {
         this.y = 100;
     }
     
+    public void fireBullet(int startX, int startY, double angle) {
+        // You can pick damage or logic here (like your normal shootBullet logic).
+        int damage = 30; // or do a switch by currentWeapon if you want
+        long currentTime = System.currentTimeMillis();
+
+        // If you want no fireDelay check for remote bullets, just spawn it:
+        Bullet newBullet = new Bullet(
+            startX,
+            startY,
+            8,           // bullet speed
+            angle,
+            tileM,
+            damage,
+            this.id      // shooter
+        );
+        bullets.add(newBullet);
+    }
+
+    
     private void loadImages() {
     	if (this.currentWeapon ==2) {
         this.up1 = setup("/character/Walking1.png");

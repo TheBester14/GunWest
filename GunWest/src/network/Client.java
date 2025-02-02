@@ -6,8 +6,8 @@ import javax.swing.JOptionPane;
 import main.GamePanel;
 
 /**
- * A client that connects to the server on port 5000,
- * and passes messages to/from the GamePanel.
+ * A client that connects to server on port 5000,
+ * receives messages, passes them to GamePanel, etc.
  */
 public class Client implements NetworkSender {
     private Socket socket;
@@ -19,13 +19,11 @@ public class Client implements NetworkSender {
 
     public void setGamePanel(GamePanel gp) {
         this.gamePanel = gp;
-        // pass the client ref to the gamePanel, so gamePanel can do netClient.sendToServer
         gamePanel.setNetworkClient(this);
     }
     
     public void start() {
-        // prompt for IP and username
-        String host = JOptionPane.showInputDialog("Enter server IP:", "127.0.0.1");
+        String host = JOptionPane.showInputDialog("Server IP:", "127.0.0.1");
         if (host == null || host.isEmpty()) {
             System.out.println("No IP. Exiting client.");
             return;
@@ -35,16 +33,15 @@ public class Client implements NetworkSender {
             System.out.println("No username. Exiting client.");
             return;
         }
-        
         try {
             socket = new Socket(host, 5000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
+
             // send username
             out.println(username);
-            
-            // start a thread to read from server
+
+            // Listen to server in a new thread
             new Thread(() -> listenToServer()).start();
         } catch (IOException e) {
             System.err.println("Could not connect to server: " + e.getMessage());
@@ -57,14 +54,14 @@ public class Client implements NetworkSender {
             while ((line = in.readLine()) != null) {
                 handleServerMessage(line);
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             System.out.println("Disconnected from server.");
         }
     }
 
     private void handleServerMessage(String message) {
         if (message.startsWith("WELCOME")) {
-            // WELCOME <id> <x> <y>
+            // "WELCOME <id> <x> <y>"
             String[] parts = message.split(" ");
             myId = Integer.parseInt(parts[1]);
             int startX = Integer.parseInt(parts[2]);
@@ -72,8 +69,8 @@ public class Client implements NetworkSender {
             gamePanel.player.setX(startX);
             gamePanel.player.setY(startY);
             gamePanel.setMyId(myId);
-            System.out.println("WELCOME: My ID=" + myId + 
-                               " starting pos=(" + startX + "," + startY + ")");
+            System.out.println("WELCOME: My ID=" + myId 
+                + " spawn=("+startX+","+startY+")");
         }
         else if (message.startsWith("UPDATE")) {
             // "UPDATE <id> <x> <y>"
@@ -81,19 +78,12 @@ public class Client implements NetworkSender {
             int id = Integer.parseInt(parts[1]);
             int x  = Integer.parseInt(parts[2]);
             int y  = Integer.parseInt(parts[3]);
-
-            // Only do local player's x,y if this 'UPDATE' is for me?
-            // Typically we skip it if (id == myId), 
-            // but for remote players:
             if (id != myId) {
                 gamePanel.updateRemotePlayer(id, x, y);
             }
-            // If you do skip your own ID, that is normal (the server 
-            // doesn't need to tell you your own position). 
-            // The main check is that if ID != myId, you DO call updateRemotePlayer.
         }
         else if (message.startsWith("ROTATE")) {
-            // ROTATE <id> <angle>
+            // "ROTATE <id> <angle>"
             String[] parts = message.split(" ");
             int id = Integer.parseInt(parts[1]);
             double angle = Double.parseDouble(parts[2]);
@@ -102,20 +92,17 @@ public class Client implements NetworkSender {
             }
         }
         else if (message.startsWith("BULLET")) {
-            // BULLET <ownerId> <startX> <startY> <angle>
+            // "BULLET <ownerId> <startX> <startY> <angle>"
             String[] parts = message.split(" ");
             int ownerId = Integer.parseInt(parts[1]);
             int startX  = Integer.parseInt(parts[2]);
             int startY  = Integer.parseInt(parts[3]);
             double bulletAngle = Double.parseDouble(parts[4]);
-            
-            // ***** FIXED: remove the "if (ownerId != myId)" check *****
-            // Now we always spawn the bullet from the server message,
-            // so that everyone sees every bullet (including the shooter).
+            // always show bullet, even if it's ours
             gamePanel.remotePlayerBulletFired(ownerId, startX, startY, bulletAngle);
         }
         else if (message.startsWith("HPUPDATE")) {
-            // HPUPDATE <id> <hp>
+            // "HPUPDATE <id> <hp>"
             String[] parts = message.split(" ");
             int id = Integer.parseInt(parts[1]);
             int newHp = Integer.parseInt(parts[2]);
@@ -127,12 +114,8 @@ public class Client implements NetworkSender {
                 }
             }
         }
-        else if (message.startsWith("CHAT")) {
-            String chatLine = message.substring(4).trim();
-            System.out.println(chatLine);
-        } 
         else if (message.startsWith("SCOREUPDATE")) {
-            // e.g. "SCOREUPDATE <id> <score>"
+            // "SCOREUPDATE <id> <score>"
             String[] parts = message.split(" ");
             int id = Integer.parseInt(parts[1]);
             int newScore = Integer.parseInt(parts[2]);
@@ -148,11 +131,14 @@ public class Client implements NetworkSender {
             gamePanel.resetRoundLocally();
         }
         else if (message.startsWith("GAMEOVER")) {
-            // e.g. "GAMEOVER <winnerId>"
+            // "GAMEOVER <winnerId>"
             String[] parts = message.split(" ");
             int winnerId = Integer.parseInt(parts[1]);
-            System.out.println("Server says: Game Over! Player " + winnerId + " wins!");
+            System.out.println("Server: Player " + winnerId + " wins!");
             gamePanel.setGameOver(true);
+        }
+        else if (message.startsWith("CHAT")) {
+            System.out.println( message.substring(4).trim() );
         }
         else {
             System.out.println("Server> " + message);
