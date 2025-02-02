@@ -103,9 +103,8 @@ public class Player extends Entity {
         double dy = mouseY - playerCenterY;
         
         angle = Math.atan2(dy, dx);
-        angle += Math.PI / 2; // depending on your sprite orientation
-        
-        // Fire bullets if left mouse is down
+        angle += Math.PI / 2; 
+
         if (mouseHandler.isLeftDown()) {
             shootBullet(angle);
         }
@@ -168,9 +167,7 @@ public class Player extends Entity {
         }
     }
     
-    /**
-     * Shoots a bullet from the player's center at the given angle.
-     */
+
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
