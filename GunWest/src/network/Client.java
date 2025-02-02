@@ -59,7 +59,7 @@ public class Client implements NetworkSender {
     private void listenToServer() {
         try {
         	InputStream in2 = socket.getInputStream();
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[32768];
             while (true) {
                 int bytesRead = in2.read(buffer);
 
@@ -140,21 +140,22 @@ public class Client implements NetworkSender {
             microphone = (TargetDataLine) AudioSystem.getLine(info);
             microphone.open(format);
             microphone.start();
-
+            System.out.println("Mic initialized and started.");
             info = new DataLine.Info(SourceDataLine.class, format);
             speakers = (SourceDataLine) AudioSystem.getLine(info);
             speakers.open(format);
             speakers.start();
-
+            System.out.println("Speakers initialized and started.");
             new Thread(() -> captureAudio()).start();
             new Thread(() -> playAudio()).start();
+            new Thread(() -> testLocalLoopback()).start();
         } catch (LineUnavailableException e) {
             e.printStackTrace();
         }
     }
     
     private void captureAudio() {
-    	 byte[] buffer = new byte[4096];
+    	 byte[] buffer = new byte[32768];
     	    while (true) {
     	        int bytesRead = microphone.read(buffer, 0, buffer.length);
     	        if (bytesRead > 0) {
@@ -182,10 +183,11 @@ public class Client implements NetworkSender {
     }
 
 	private void playAudio() {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[32768];
         while (true) {
             byte[] audioData = receiveAudio();
             if (audioData != null) {
+            	System.out.println("Received audio data: " + audioData.length + " bytes");
                 speakers.write(audioData, 0, audioData.length);
             }
         }
@@ -194,7 +196,7 @@ public class Client implements NetworkSender {
     private byte[] receiveAudio() {
         try {
             InputStream in = socket.getInputStream();
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[32768];
             int bytesRead = in.read(buffer);
             if (bytesRead > 0) {
                 return Arrays.copyOf(buffer, bytesRead);
@@ -206,6 +208,17 @@ public class Client implements NetworkSender {
     }
 
     
+    private void testLocalLoopback() {
+        byte[] buffer = new byte[32768];
+        while (true) {
+            int bytesRead = microphone.read(buffer, 0, buffer.length);
+            if (bytesRead > 0) {
+                speakers.write(buffer, 0, bytesRead);
+            }
+        }
+    }
+    
+    
     @Override
     public void sendToServer(String msg) {
         // Only send if the connection is established.
@@ -213,5 +226,6 @@ public class Client implements NetworkSender {
             out.println(msg);
         }
     }
+    
     
 }

@@ -100,7 +100,8 @@ public class Server {
     }
     
     private void handleAudio(Player player, byte[] audioData) {
-        for (Player p : players) {
+        System.out.println("Broadcasting audio data: " + audioData.length + " bytes");
+    	for (Player p : players) {
             if (p.getPlayerId() != player.getPlayerId()) {
                 p.sendAudio(audioData);
             }
