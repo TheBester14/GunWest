@@ -42,7 +42,7 @@ public class Player extends Entity {
         
         this.speed = 4;
         this.bullets = new ArrayList<>();
-        this.fireDelay = 300;
+        this.fireDelay = 400;
         this.lastShot = 0;
         this.width = 50;
         this.height = 50;
@@ -198,7 +198,7 @@ public class Player extends Entity {
 	          break;
 	        case 1:
 	          damage = 60;
-	          this.fireDelay = 800;
+	          this.fireDelay = 650;
 	          break;
 	        case 2:
 	          damage = 30;
