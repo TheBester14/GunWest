@@ -27,6 +27,7 @@ public class Player extends Entity {
     private BufferedImage up1, up2;
     private int currentWeapon;
     private int id;
+    private int score = 0;
     // For sending network events.
     private NetworkSender networkSender;
     
@@ -393,4 +394,6 @@ public class Player extends Entity {
     public int getY() { return y; }
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
+    public int getScore() { return score; }
+    public void setScore(int newScore) { this.score = newScore; }
 }

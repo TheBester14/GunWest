@@ -148,6 +148,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void updateGame() {
+    	
+    	if (gameOver) return;
         int oldX = player.getX();
         int oldY = player.getY();
 
@@ -197,5 +199,27 @@ public class GamePanel extends JPanel implements Runnable {
             // remove destroyed remote bullets
             rp.getBullets().removeIf(RemoteBullet::isDestroyed);
         }
+        
+        
     }
+    
+    public void resetRoundLocally() {
+        // The server already updated positions & HP.
+        // We can remove bullets from local + remote 
+        // so no bullets remain after the round resets.
+        player.getBullets().clear();
+        for (RemotePlayer rp : remotePlayers.values()) {
+            rp.getBullets().clear();
+        }
+        System.out.println("Round reset locally. Bullets cleared.");
+    }
+    
+    private boolean gameOver = false;
+    public void setGameOver(boolean val) {
+        this.gameOver = val;
+        if (val) {
+            System.out.println("Game Over! No more input allowed!");
+        }
+    }
+    
 }

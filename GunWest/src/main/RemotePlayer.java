@@ -5,9 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.List;
-import javax.imageio.ImageIO;
-import java.io.IOException;
 import tile.TileManager;
 
 public class RemotePlayer {
@@ -16,35 +13,26 @@ public class RemotePlayer {
     private double angle;
     private int width = 50, height = 50;
     private BufferedImage sprite;
-    private List<RemoteBullet> bullets;
-    private int hp = 240; // default
-    private TileManager tileM; // used for tile collisions in remote bullets
+    private ArrayList<RemoteBullet> bullets;
+    
+    // Add these new fields for HP and SCORE so we can sync them
+    private int hp = 240;
+    private int score = 0;
 
-    // Constructor that takes tileManager
-    public RemotePlayer(int x, int y, TileManager tm) {
+    // If you want tile collisions for remote bullets, store tileM
+    private TileManager tileM;
+
+    public RemotePlayer(int x, int y, TileManager tileM) {
         this.x = x;
         this.y = y;
         this.angle = 0.0;
+        this.tileM = tileM;
         bullets = new ArrayList<>();
-        this.tileM = tm;
-        try {
-            sprite = ImageIO.read(getClass().getResource("/character/Walking1.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // load your sprite...
     }
 
-    // Overloaded if you absolutely need it
-    public RemotePlayer(int x, int y) {
-        this(x, y, null);
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-    public int getId() {
-        return id;
-    }
+    public void setId(int id) { this.id = id; }
+    public int getId() { return id; }
 
     public void setPosition(int x, int y) {
         this.x = x;
@@ -53,17 +41,20 @@ public class RemotePlayer {
     public void setAngle(double angle) {
         this.angle = angle;
     }
+    public double getAngle() {
+        return angle;
+    }
 
     public void fireBullet(int startX, int startY, double bulletAngle) {
-        // pass the tileManager so the bullet can collide with tiles
         bullets.add(new RemoteBullet(startX, startY, bulletAngle, this.id, tileM));
     }
 
     public void update() {
+        // update bullets, remove destroyed, etc...
         for (int i = bullets.size() - 1; i >= 0; i--) {
-            RemoteBullet b = bullets.get(i);
-            b.update();
-            if (b.isDestroyed()) {
+            RemoteBullet rb = bullets.get(i);
+            rb.update();
+            if (rb.isDestroyed()) {
                 bullets.remove(i);
             }
         }
@@ -71,18 +62,10 @@ public class RemotePlayer {
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        int centerX = x + width / 2;
-        int centerY = y + height / 2;
-
-        g2.translate(centerX, centerY);
-        g2.rotate(angle);
-        g2.drawImage(sprite, -width/2, -height/2, width, height, null);
-        g2.rotate(-angle);
-        g2.translate(-centerX, -centerY);
-
-        // draw bullets
-        for (RemoteBullet bullet : bullets) {
-            bullet.draw(g2);
+        // draw the sprite at x,y rotated by angle...
+        // then draw bullets
+        for (RemoteBullet rb : bullets) {
+            rb.draw(g2);
         }
     }
 
@@ -90,14 +73,23 @@ public class RemotePlayer {
         return new Rectangle(x, y, width, height);
     }
 
-    // HP for remote
-    public int getHp() { return hp; }
+    // --- Add the new HP & SCORE methods ---
+    public int getHp() {
+        return hp;
+    }
     public void setHp(int newHp) {
         if (newHp < 0) newHp = 0;
         this.hp = newHp;
     }
 
-    public List<RemoteBullet> getBullets() {
+    public int getScore() {
+        return score;
+    }
+    public void setScore(int newScore) {
+        this.score = newScore;
+    }
+
+    public ArrayList<RemoteBullet> getBullets() {
         return bullets;
     }
 }
