@@ -24,6 +24,7 @@ public class Player extends Entity {
     private int spriteCounter;
     private int spriteNum;
     private int hp;
+    private BufferedImage up1, up2;
 
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
@@ -48,8 +49,8 @@ public class Player extends Entity {
     }
     
     private void loadImages() {
-        up1 = setup("/character/Walking1.png");
-        up2 = setup("/character/Walking2.png");
+        this.up1 = setup("/character/Walking1.png");
+        this.up2 = setup("/character/Walking2.png");
     }
     
     @Override
@@ -276,5 +277,21 @@ public class Player extends Entity {
 
 	public void setAngle(double angle) {
 		this.angle = angle;
+	}
+
+	public BufferedImage getUp1() {
+		return up1;
+	}
+
+	public void setUp1(BufferedImage up1) {
+		this.up1 = up1;
+	}
+
+	public BufferedImage getUp2() {
+		return up2;
+	}
+
+	public void setUp2(BufferedImage up2) {
+		this.up2 = up2;
 	}
 }
