@@ -5,6 +5,7 @@ import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener{
 	public boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
+	public boolean oneKey, twoKey, threeKey;
 	
 	public KeyHandler() {
 	}
@@ -50,6 +51,18 @@ public class KeyHandler implements KeyListener{
 		
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			this.spacePressed = false;
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_1) {
+			this.oneKey = true;
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_2) {
+			this.twoKey = true;
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_3) {
+			this.threeKey = true;
 		}
 	}
 

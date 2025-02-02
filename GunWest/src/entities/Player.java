@@ -42,7 +42,7 @@ public class Player extends Entity {
         
         this.speed = 4;
         this.bullets = new ArrayList<>();
-        this.fireDelay = 200;
+        this.fireDelay = 400;
         this.lastShot = 0;
         this.width = 50;
         this.height = 50;
@@ -71,21 +71,32 @@ public class Player extends Entity {
         int oldY = y;
         
         boolean moving = false;
-        if (keyHandler.upPressed) {
-            y -= speed;
+        if (this.keyHandler.upPressed) {
+        	this.y -= this.speed;
             moving = true;
         }
-        if (keyHandler.downPressed) {
-            y += speed;
+        if (this.keyHandler.downPressed) {
+        	this.y += this.speed;
             moving = true;
         }
-        if (keyHandler.leftPressed) {
-            x -= speed;
+        if (this.keyHandler.leftPressed) {
+        	this.x -= this.speed;
             moving = true;
         }
-        if (keyHandler.rightPressed) {
-            x += speed;
+        if (this.keyHandler.rightPressed) {
+        	this.x += this.speed;
             moving = true;
+        }
+        
+        if (this.keyHandler.oneKey) {
+        	setCurrentWeapon(0);
+        	this.keyHandler.oneKey = false;
+        } else if (this.keyHandler.twoKey) {
+        	setCurrentWeapon(1);
+        	this.keyHandler.twoKey = false;
+        } else if (this.keyHandler.threeKey) {
+        	setCurrentWeapon(2);
+        	this.keyHandler.threeKey = false;
         }
         
         if (moving) {
@@ -178,13 +189,33 @@ public class Player extends Entity {
     
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
+        int damage = 0;
+        
+        switch(this.currentWeapon) {
+	        case 0:
+	          damage = 240;
+	          this.fireDelay = 1200;
+	          break;
+	        case 1:
+	          damage = 60;
+	          this.fireDelay = 650;
+	          break;
+	        case 2:
+	          damage = 30;
+	          this.fireDelay = 400;
+	          break;
+	        default:
+	          damage = 60;
+	      }
+        
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
             Bullet newBullet = new Bullet(
                 x + width / 2,
                 y + height / 2,
                 8,
                 angle,
-                tileM
+                tileM,
+                5
             );
             bullets.add(newBullet);
             lastShot = currentTime;
