@@ -48,7 +48,7 @@ public class Player extends Entity {
         this.tileM = tileM;
         this.name = name;
         
-        this.speed = 4;
+        this.speed = 1;
         this.bullets = new ArrayList<>();
         this.fireDelay = 400;
         this.lastShot = 0;
