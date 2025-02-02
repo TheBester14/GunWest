@@ -4,11 +4,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener{
-	private GamePanel gp;
 	public boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
 	
-	public KeyHandler(GamePanel gp) {
-		this.gp = gp;
+	public KeyHandler() {
 	}
 	
 	public void keyPressed(KeyEvent e) {
