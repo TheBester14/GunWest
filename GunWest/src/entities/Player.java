@@ -82,7 +82,10 @@ public class Player extends Entity {
    	     this.up2 = setup("/character/PersoStillShotgun.png");
     	}
     }
-    
+    private int kills;
+
+    public int getKills() { return kills; }
+    public void setKills(int kills) { this.kills = kills; }
     @Override
     public void update() {
         int oldX = this.x;

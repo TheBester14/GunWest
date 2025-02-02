@@ -68,6 +68,10 @@ public class RemotePlayer {
             }
         }
     }
+    private int kills;
+
+    public int getKills() { return kills; }
+    public void setKills(int kills) { this.kills = kills; }
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;

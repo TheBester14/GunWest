@@ -183,13 +183,18 @@ public class GamePanel extends JPanel implements Runnable {
             lastSentAngle = currentAngle;
         }
 
-        // 1) local bullets vs remote players
+     // 1) local bullets vs remote players
         for (int i = player.getBullets().size() - 1; i >= 0; i--) {
             Bullet bullet = player.getBullets().get(i);
             Rectangle bulletRect = new Rectangle(bullet.x, bullet.y, bullet.width, bullet.height);
             for (RemotePlayer rp : remotePlayers.values()) {
                 if (bulletRect.intersects(rp.getBounds()) && bullet.getOwnerId() != rp.getId()) {
-                    netClient.sendToServer("DAMAGE " + rp.getId() + " " + bullet.getDamage());
+                    // Pass bullet.getOwnerId() to server
+                    netClient.sendToServer("DAMAGE " 
+                            + rp.getId() + " "          // targetId
+                            + bullet.getDamage() + " " // damage
+                            + bullet.getOwnerId()      // killerId
+                    );
                     bullet.setDestroyed(true);
                 }
             }
@@ -200,20 +205,22 @@ public class GamePanel extends JPanel implements Runnable {
         // 2) remote bullets vs local player
         Rectangle localBounds = player.getBounds();
         for (RemotePlayer rp : remotePlayers.values()) {
-            // remote bullets tile collisions are in RemoteBullet.update()
-            // so we just remove them if isDestroyed() is true
-
             for (int i = rp.getBullets().size() - 1; i >= 0; i--) {
                 RemoteBullet rb = rp.getBullets().get(i);
-                Rectangle rbRect = new Rectangle((int)rb.getX(), (int)rb.getY(), rb.getSize(), rb.getSize());
+                Rectangle rbRect = new Rectangle((int) rb.getX(), (int) rb.getY(), rb.getSize(), rb.getSize());
                 if (rbRect.intersects(localBounds) && rb.getOwnerId() != myId) {
-                    // e.g. always 30 damage from remote bullets
-                    netClient.sendToServer("DAMAGE " + myId + " 30");
+                    // Pass rb.getOwnerId() to server
+                    netClient.sendToServer("DAMAGE " 
+                            + myId + " "      // targetId
+                            + 30 + " "        // damage
+                            + rb.getOwnerId() // killerId
+                    );
                     rb.setDestroyed(true);
                 }
             }
             // remove destroyed remote bullets
             rp.getBullets().removeIf(RemoteBullet::isDestroyed);
         }
+
     }
 }
