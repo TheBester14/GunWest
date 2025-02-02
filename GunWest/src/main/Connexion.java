@@ -42,7 +42,6 @@ public class Connexion extends JPanel {
         });
         add(connectButton);
 
-        // Optional: set the panel size and visibility
         setPreferredSize(new Dimension(400, 200));
         setVisible(true);
     }
