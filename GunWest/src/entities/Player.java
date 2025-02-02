@@ -70,8 +70,8 @@ public class Player extends Entity {
     
     @Override
     public void update() {
-        int oldX = x;
-        int oldY = y;
+        int oldX = this.x;
+        int oldY = this.y;
         
         boolean moving = false;
         if (this.keyHandler.upPressed) {
@@ -113,7 +113,7 @@ public class Player extends Entity {
         }
         
         // Check collision with tiles.
-        if (collisionChecker()) {
+        if (collisionChecker() || boundChecker()) {
             x = oldX;
             y = oldY;
         }
@@ -145,7 +145,9 @@ public class Player extends Entity {
     }
     
     public boolean collisionChecker() {
-        Rectangle playerRect = new Rectangle(x, y, width, height);
+    	int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        Rectangle playerRect = new Rectangle(trueX, trueY, this.width/2, this.height/2);
         
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {
             for (int col = 0; col < tileM.gp.maxWorldCol; col++) {
@@ -160,6 +162,7 @@ public class Player extends Entity {
                         tileM.gp.tileSize,
                         tileM.gp.tileSize
                     );
+                    
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
@@ -167,6 +170,20 @@ public class Player extends Entity {
             }
         }
         return false;
+    }
+    
+    private boolean boundChecker() {
+        int panelWidth = 1280;
+        int panelHeight = 704;
+
+        int objectWidth = this.width / 2;
+        int objectHeight = this.height / 2;
+
+        int newX = this.x + (width - objectWidth) / 2;
+        int newY = this.y + (height - objectHeight) / 2;
+
+        return (newX < 0 || newX > panelWidth - objectWidth ||
+        		newY < 0 || newY > panelHeight - objectHeight);
     }
     
     @Override
@@ -183,6 +200,10 @@ public class Player extends Entity {
         g2.rotate(angle);
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
+        
+        int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        g.drawRect(trueX, trueY, this.width/2, this.height/2);
         
         // Draw bullets.
         for (Bullet bullet : bullets) {
