@@ -60,7 +60,7 @@ public class Client implements NetworkSender {
     private void listenToServer() {
         try {
         	InputStream in2 = socket.getInputStream();
-            byte[] buffer = new byte[32768];
+            byte[] buffer = new byte[4096];
             while (true) {
                 int bytesRead = in2.read(buffer);
 
@@ -172,7 +172,7 @@ public class Client implements NetworkSender {
     }
     
     private void captureAudio() {
-    	 byte[] buffer = new byte[2048];
+    	 byte[] buffer = new byte[4096];
     	    while (true) {
     	        int bytesRead = microphone.read(buffer, 0, buffer.length);
     	        if (bytesRead > 0) {
@@ -200,7 +200,7 @@ public class Client implements NetworkSender {
     }
 
 	private void playAudio() {
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[4096];
         while (true) {
             byte[] audioData = receiveAudio();
             if (audioData != null) {
@@ -226,7 +226,7 @@ public class Client implements NetworkSender {
 
     
     private void testLocalLoopback() {
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[4096];
         while (true) {
             int bytesRead = microphone.read(buffer, 0, buffer.length);
             if (bytesRead > 0) {

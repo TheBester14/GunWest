@@ -81,7 +81,7 @@ public class Server {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-    	        byte[] buffer = new byte[8192];
+    	        byte[] buffer = new byte[4096];
             while (true) {
             	 int bytesRead = 0;
 				try {
