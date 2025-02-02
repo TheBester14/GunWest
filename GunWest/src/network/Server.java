@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A server that listens on port 5000.
- * Each connected client is assigned (id, username), plus spawn logic.
- * We broadcast "NAME <id> <username>" so all clients know each player's name.
+ * Server that listens on port 5000.
+ * - Each client is assigned (id, username).
+ * - Reaches 6 kills => broadcast GAMEOVER <winnerId> <winnerUsername>.
  */
 public class Server {
     private ServerSocket serverSocket;
@@ -27,13 +27,11 @@ public class Server {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 
-                // First message is the player's username
-                String username = in.readLine(); 
+                // first line from client: username
+                String username = in.readLine();
                 
-                // Create Player object
                 Player player = new Player(socket, nextPlayerId, username);
                 
                 // Example spawn logic
@@ -52,25 +50,21 @@ public class Server {
                 System.out.println("Player " + player.getUsername() 
                     + " connected (ID=" + player.getPlayerId() + ").");
                 
-                // 1) Send this new player all the existing players' names
+                // Send new player the names of all existing players
                 for (Player existing : players) {
                     if (existing != player) {
-                        // e.g. "NAME <existingId> <existingUsername>"
                         player.sendMessage("NAME " 
-                             + existing.getPlayerId() + " " 
-                             + existing.getUsername());
+                                + existing.getPlayerId() + " "
+                                + existing.getUsername());
                     }
                 }
-                
-                // 2) Broadcast new player's name to everyone *else*
-                //    i.e. "NAME <id> <username>"
-                broadcast("NAME " + player.getPlayerId() + " " 
-                          + player.getUsername(), 
+
+                // Broadcast the new player's name to everyone else
+                broadcast("NAME " + player.getPlayerId() + " " + player.getUsername(), 
                           player.getPlayerId());
 
-                // Notify all that this player joined
-                broadcast("CHAT Server: " + player.getUsername() 
-                    + " joined!", -1);
+                // Broadcast that they joined
+                broadcast("CHAT Server: " + player.getUsername() + " joined!", -1);
 
                 // Send WELCOME with assigned ID and initial position
                 player.sendMessage("WELCOME " 
@@ -80,7 +74,7 @@ public class Server {
                 
                 nextPlayerId++;
                 
-                // Handle this player's messages in a new thread
+                // handle this player's messages in a new thread
                 new Thread(() -> handlePlayer(player)).start();
                 
             } catch (IOException e) {
@@ -93,11 +87,10 @@ public class Server {
         try {
             String message;
             while ((message = player.receiveMessage()) != null) {
-                System.out.println("From " + player.getUsername() 
-                    + ": " + message);
+                System.out.println("From " + player.getUsername() + ": " + message);
 
                 if (message.toUpperCase().startsWith("MOVE")) {
-                    // Format: MOVE dx dy
+                    // MOVE dx dy
                     String[] parts = message.split(" ");
                     if (parts.length == 3) {
                         int dx = Integer.parseInt(parts[1]);
@@ -105,8 +98,8 @@ public class Server {
                         player.setX(player.getX() + dx);
                         player.setY(player.getY() + dy);
                         broadcast("UPDATE " + player.getPlayerId() 
-                            + " " + player.getX() 
-                            + " " + player.getY(), -1);
+                                  + " " + player.getX() 
+                                  + " " + player.getY(), -1);
                     }
 
                 } else if (message.toUpperCase().startsWith("ROTATE")) {
@@ -116,8 +109,8 @@ public class Server {
                         double angle = Double.parseDouble(parts[1]);
                         player.setAngle(angle);
                         broadcast("ROTATE " + player.getPlayerId() 
-                            + " " + angle, 
-                            player.getPlayerId());
+                                  + " " + angle, 
+                                  player.getPlayerId());
                     }
 
                 } else if (message.toUpperCase().startsWith("BULLET")) {
@@ -127,15 +120,13 @@ public class Server {
                         int startX = Integer.parseInt(parts[1]);
                         int startY = Integer.parseInt(parts[2]);
                         double bulletAngle = Double.parseDouble(parts[3]);
-                        // Broadcast so all see the bullet.
                         broadcast("BULLET " + player.getPlayerId() 
-                            + " " + startX + " " + startY 
-                            + " " + bulletAngle, 
-                            player.getPlayerId());
+                                  + " " + startX + " " + startY 
+                                  + " " + bulletAngle, 
+                                  player.getPlayerId());
                     }
 
-                } // In handlePlayer(Player player), inside the DAMAGE block:
-                else if (message.toUpperCase().startsWith("DAMAGE")) {
+                } else if (message.toUpperCase().startsWith("DAMAGE")) {
                     // DAMAGE <targetId> <amount> <killerId>
                     String[] parts = message.split(" ");
                     if (parts.length == 4) {
@@ -145,63 +136,59 @@ public class Server {
                         
                         for (Player p : players) {
                             if (p.getPlayerId() == targetId) {
+                                // apply damage
                                 p.takeDamage(dmg);
                                 broadcast("HPUPDATE " + targetId + " " + p.getHp(), -1);
 
+                                // check if target died
                                 if (p.getHp() <= 0) {
-                                    // Find killer, increment kills
+                                    // find the killer
                                     for (Player potentialKiller : players) {
                                         if (potentialKiller.getPlayerId() == killerId) {
                                             potentialKiller.incrementKills();
                                             int newKills = potentialKiller.getKills();
-                                            
-                                            // Send updated kills to all
+
+                                            // broadcast updated kills
                                             broadcast("SCOREUPDATE " + killerId + " " + newKills, -1);
 
-                                            // -----------------------------
-                                            // Check if killer reached 6 kills => game over
+                                            // if killer reached 6 => game over
                                             if (newKills >= 6) {
-                                                // If you interpret ID=0 => "Player 1", ID=1 => "Player 2", etc...
-                                                String winnerName = "Player " + (killerId + 1);
-                                                // Or you could use potentialKiller.getUsername() if you prefer
-                                                
-                                                // Broadcast a chat message
-                                                broadcast("CHAT " + winnerName + " WON THE GAME!", -1);
-
-                                                // Then broadcast a GAMEOVER so clients can lock input
-                                                broadcast("GAMEOVER " + killerId, -1);
+                                                String winnerUsername = potentialKiller.getUsername();
+                                                // broadcast a chat
+                                                broadcast("CHAT " + winnerUsername + " WON THE GAME!", -1);
+                                                // broadcast GAMEOVER <id> <username>
+                                                broadcast("GAMEOVER " + killerId 
+                                                          + " " + winnerUsername, -1);
                                             }
-                                            // -----------------------------
-
                                             break;
                                         }
                                     }
 
-                                    // Respawn the dead player
+                                    // respawn the dead player
                                     p.setHp(240);
                                     p.setX(p.getSpawnX());
                                     p.setY(p.getSpawnY());
                                     broadcast("HPUPDATE " + p.getPlayerId() + " " + p.getHp(), -1);
-                                    broadcast("UPDATE " + p.getPlayerId() + " " + p.getX() + " " + p.getY(), -1);
+                                    broadcast("UPDATE " + p.getPlayerId() 
+                                              + " " + p.getX() 
+                                              + " " + p.getY(), -1);
                                 }
                                 break;
                             }
                         }
                     }
-                }
-                else if (message.toUpperCase().startsWith("CHAT")) {
+                } else if (message.toUpperCase().startsWith("CHAT")) {
+                    // Chat
                     String chatContent = message.substring(4).trim();
-                    broadcast("CHAT " + player.getUsername() 
-                        + ": " + chatContent, -1);
+                    broadcast("CHAT " + player.getUsername() + ": " + chatContent, -1);
 
                 } else {
-                    // Default: broadcast as chat
-                    broadcast("CHAT " + player.getUsername() 
-                        + ": " + message, -1);
+                    // default => broadcast as chat
+                    broadcast("CHAT " + player.getUsername() + ": " + message, -1);
                 }
             }
         } catch (IOException e) {
-            // Client disconnected
+            // player disconnected
         } finally {
             try {
                 player.close();
@@ -210,15 +197,15 @@ public class Server {
             }
             players.remove(player);
             System.out.println(player.getUsername() + " disconnected.");
-            broadcast("CHAT Server: " + player.getUsername() 
-                + " left the game.", -1);
+            broadcast("CHAT Server: " + player.getUsername() + " left the game.", -1);
         }
     }
 
+    /**
+     * broadcast a message to all players except 'senderId' if needed
+     */
     private void broadcast(String message, int senderId) {
         for (Player p : players) {
-            // Skip the sender's client if we want "private" info
-            // but here we skip only if the logic requires that
             if (p.getPlayerId() != senderId) {
                 p.sendMessage(message);
             }

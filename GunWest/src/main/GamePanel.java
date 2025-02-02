@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
+
 import tile.TileManager;
 import entities.Bullet;
 import entities.Player;
@@ -29,12 +30,19 @@ public class GamePanel extends JPanel implements Runnable {
     public Player player;
     public TileManager tileManager;
     public UI ui;
+    
+    // For "Game Over" logic:
     private boolean gameOver = false;
     private int winnerId = -1;
-    public void setGameOver(boolean isOver, int winnerId) {
+    private String winnerName = "";
+
+    // The method the client calls when a winner is declared
+    public void setGameOver(boolean isOver, int winnerId, String winnerName) {
         this.gameOver = isOver;
         this.winnerId = winnerId;
+        this.winnerName = winnerName;
     }
+
     private network.Client netClient;
     public Map<Integer, RemotePlayer> remotePlayers;
 
@@ -45,6 +53,8 @@ public class GamePanel extends JPanel implements Runnable {
         keyHandler = new KeyHandler();
         mouseHandler = new MouseHandler();
         tileManager = new TileManager(this);
+
+        // local player name is initially "", set by client
         player = new Player(keyHandler, mouseHandler, tileManager, "", this);
         lastSentAngle = player.getAngle();
 
@@ -79,47 +89,33 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void setMyId(int id) {
         this.myId = id;
-        // Optionally, if you want Player to have the same id:
         player.setId(id);
     }
 
-    // Called by the client when receiving an UPDATE x,y
+    // Called by the client when receiving UPDATE <id> <x> <y>
     public void updateRemotePlayer(int id, int x, int y) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setPosition(x, y);
         } else {
-            // Pass tileManager so remote bullets also do tile collisions
             RemotePlayer rp = new RemotePlayer(x, y, tileManager);
             rp.setId(id);
             remotePlayers.put(id, rp);
         }
     }
 
-    // Called by the client when receiving ROTATE
+    // Called by the client when receiving ROTATE <id> <angle>
     public void updateRemotePlayerRotation(int id, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setAngle(angle);
         }
     }
 
-    // Called by the client when receiving a BULLET message
+    // Called by the client when receiving BULLET <ownerId> <startX> <startY> <angle>
     public void remotePlayerBulletFired(int id, int startX, int startY, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).fireBullet(startX, startY, angle);
         }
     }
-    public void updateRemotePlayerName(int id, String name) {
-        if (remotePlayers.containsKey(id)) {
-            remotePlayers.get(id).setName(name);
-        } else {
-            // create them if needed
-            RemotePlayer rp = new RemotePlayer(600, 600, tileManager);
-            rp.setId(id);
-            rp.setName(name);
-            remotePlayers.put(id, rp);
-        }
-    }
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -128,13 +124,13 @@ public class GamePanel extends JPanel implements Runnable {
 
         tileManager.draw(g2);
 
-        // Draw local player
+        // draw local player
         if (player.getHp() > 0) {
             player.draw(g2);
         }
         ui.draw(g);
 
-        // Draw remote players
+        // draw remote players
         for (RemotePlayer rp : remotePlayers.values()) {
             rp.update(); 
             if (rp.getHp() > 0) {
@@ -142,7 +138,7 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
-        // If gameOver, show big text
+        // If gameOver, show big overlay
         if (gameOver) {
             g2.setColor(new Color(0, 0, 0, 150));
             g2.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -150,12 +146,12 @@ public class GamePanel extends JPanel implements Runnable {
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Arial", Font.BOLD, 50));
 
-            // E.g. if winnerId = 0 => "Player 1" or you can do "Username won!"
-            String winnerText = "Player " + (winnerId + 1) + " WON!";
-            // Center it on screen
+            // Show the actual winner's name
+            String winnerText = winnerName + " WON!";
+
+            // Center it
             int textWidth  = g2.getFontMetrics().stringWidth(winnerText);
             int textHeight = g2.getFontMetrics().getAscent();
-
             int centerX = (SCREEN_WIDTH - textWidth) / 2;
             int centerY = (SCREEN_HEIGHT - textHeight) / 2;
 
@@ -164,7 +160,6 @@ public class GamePanel extends JPanel implements Runnable {
 
         g2.dispose();
     }
-
 
     @Override
     public void run() {
@@ -185,28 +180,31 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
     }
+
+    // Audio 
+    Sound music = new Sound();
+    Sound soundEffect = new Sound();
+    public void playMusic(int i) {
+        music.setFile(i);
+        music.play();
+        music.loop();
+    }
     
-	// Audio 
-	Sound music = new Sound();
-	Sound soundEffect = new Sound();
-	public void playMusic(int i) {
-		music.setFile(i);
-		music.play();
-		music.loop();
-	}
-	
-	public void stopMusic() {
-		music.stop();
-	}
-	
-	public void playSE(int i ) { // SE mean sound effect
-		soundEffect.setFile(i);
-		soundEffect.play();
-	}
+    public void stopMusic() {
+        music.stop();
+    }
+    
+    public void playSE(int i ) {
+        soundEffect.setFile(i);
+        soundEffect.play();
+    }
 
     private void updateGame() {
-    	
-    	if (gameOver) {return;}
+        // If the game is over, skip logic
+        if (gameOver) {
+            return;
+        }
+
         int oldX = player.getX();
         int oldY = player.getY();
 
@@ -215,53 +213,50 @@ public class GamePanel extends JPanel implements Runnable {
         int dx = player.getX() - oldX;
         int dy = player.getY() - oldY;
 
+        // Send movement if changed
         if (netClient != null && (dx != 0 || dy != 0)) {
             netClient.sendToServer("MOVE " + dx + " " + dy);
         }
+
         double currentAngle = player.getAngle();
         if (netClient != null && Math.abs(currentAngle - lastSentAngle) > 0.01) {
             netClient.sendToServer("ROTATE " + currentAngle);
             lastSentAngle = currentAngle;
         }
 
-     // 1) local bullets vs remote players
+        // local bullets vs remote players
         for (int i = player.getBullets().size() - 1; i >= 0; i--) {
             Bullet bullet = player.getBullets().get(i);
             Rectangle bulletRect = new Rectangle(bullet.x, bullet.y, bullet.width, bullet.height);
             for (RemotePlayer rp : remotePlayers.values()) {
                 if (bulletRect.intersects(rp.getBounds()) && bullet.getOwnerId() != rp.getId()) {
-                    // Pass bullet.getOwnerId() to server
                     netClient.sendToServer("DAMAGE " 
-                            + rp.getId() + " "          // targetId
-                            + bullet.getDamage() + " " // damage
-                            + bullet.getOwnerId()      // killerId
+                            + rp.getId() + " "          
+                            + bullet.getDamage() + " " 
+                            + bullet.getOwnerId()      
                     );
                     bullet.setDestroyed(true);
                 }
             }
         }
-        // remove destroyed local bullets
         player.getBullets().removeIf(Bullet::isDestroyed);
 
-        // 2) remote bullets vs local player
+        // remote bullets vs local player
         Rectangle localBounds = player.getBounds();
         for (RemotePlayer rp : remotePlayers.values()) {
             for (int i = rp.getBullets().size() - 1; i >= 0; i--) {
                 RemoteBullet rb = rp.getBullets().get(i);
-                Rectangle rbRect = new Rectangle((int) rb.getX(), (int) rb.getY(), rb.getSize(), rb.getSize());
+                Rectangle rbRect = new Rectangle((int)rb.getX(), (int)rb.getY(), rb.getSize(), rb.getSize());
                 if (rbRect.intersects(localBounds) && rb.getOwnerId() != myId) {
-                    // Pass rb.getOwnerId() to server
                     netClient.sendToServer("DAMAGE " 
-                            + myId + " "      // targetId
-                            + 30 + " "        // damage
-                            + rb.getOwnerId() // killerId
+                            + myId + " "      
+                            + 30 + " "        
+                            + rb.getOwnerId() 
                     );
                     rb.setDestroyed(true);
                 }
             }
-            // remove destroyed remote bullets
             rp.getBullets().removeIf(RemoteBullet::isDestroyed);
         }
-
     }
 }
