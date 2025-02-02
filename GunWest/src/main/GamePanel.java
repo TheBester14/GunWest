@@ -23,6 +23,7 @@ public class GamePanel extends JPanel implements Runnable {
     public KeyHandler keyHandler;
     public Player player;
     public TileManager tileManager;
+    public UI ui;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -36,6 +37,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyHandler);
         this.addMouseMotionListener(mouseHandler);
         this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
+        ui = new UI(this, player);
 
         gameThread = new Thread(this);
         gameThread.start();
@@ -51,6 +53,8 @@ public class GamePanel extends JPanel implements Runnable {
         
         // Draw the player (which rotates to face the mouse)
         player.draw(g2);
+        
+        ui.draw(g);
         
         g2.dispose();
     }

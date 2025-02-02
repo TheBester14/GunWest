@@ -39,7 +39,7 @@ public class Player extends Entity {
         
         this.width = 50;
         this.height = 50;
-        this.hp = 100;
+        this.hp = 240;
         
         loadImages();
         
