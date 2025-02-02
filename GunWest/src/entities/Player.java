@@ -25,6 +25,7 @@ public class Player extends Entity {
     private int spriteNum;
     private int hp;
     private BufferedImage up1, up2;
+    private int currentWeapon;
 
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
@@ -46,6 +47,7 @@ public class Player extends Entity {
         this.spriteCounter = 0;
         this.spriteNum = 1;
         this.angle = 0;
+        this.currentWeapon = 2;
     }
     
     private void loadImages() {
@@ -293,5 +295,13 @@ public class Player extends Entity {
 
 	public void setUp2(BufferedImage up2) {
 		this.up2 = up2;
+	}
+
+	public int getCurrentWeapon() {
+		return currentWeapon;
+	}
+
+	public void setCurrentWeapon(int currentWeapon) {
+		this.currentWeapon = currentWeapon;
 	}
 }

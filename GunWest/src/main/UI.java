@@ -1,8 +1,10 @@
 package main;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -58,7 +60,16 @@ public class UI {
 	}
 	
 	private void drawGuns(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g;
 		
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+		g2.setComposite(ac);
+		
+		g2.drawImage(this.sniper, 865, -19, 130, 130, null);
+		g2.drawImage(this.shotgun, 1005, -21, 120, 120, null);
+		g2.drawImage(this.pistol, 1135, -5, 94, 94, null);
+		
+		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 	}
 	
 	private void drawScore(Graphics g) {
@@ -71,6 +82,7 @@ public class UI {
 	public void draw(Graphics g) {
 		drawScore(g);
 		drawLives(g);
+		drawGuns(g);
 	}
 	
 	private BufferedImage setup(String filePath) {
