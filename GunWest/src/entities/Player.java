@@ -14,11 +14,10 @@ import network.NetworkSender;
 
 public class Player extends Entity {
     private String name;
-    protected KeyHandler keyHandler;
-    protected MouseHandler mouseHandler;
+    private KeyHandler keyHandler;
+    private MouseHandler mouseHandler;
     private ArrayList<Bullet> bullets;
     private TileManager tileM;
-    
     private long fireDelay; 
     private long lastShot; 
     private double angle; 
@@ -32,6 +31,9 @@ public class Player extends Entity {
          this.networkSender = ns;
     }
     
+    private int hp;
+    private BufferedImage up1, up2;
+
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;
@@ -44,6 +46,7 @@ public class Player extends Entity {
         this.lastShot = 0;
         this.width = 50;
         this.height = 50;
+        this.hp = 240;
         
         loadImages();
         
@@ -54,11 +57,14 @@ public class Player extends Entity {
         // Set an initial position.
         this.x = 100;
         this.y = 100;
+        this.spriteCounter = 0;
+        this.spriteNum = 1;
+        this.angle = 0;
     }
     
     private void loadImages() {
-        up1 = setup("/character/Walking1.png");
-        up2 = setup("/character/Walking2.png");
+        this.up1 = setup("/character/Walking1.png");
+        this.up2 = setup("/character/Walking2.png");
     }
     
     @Override
@@ -194,10 +200,117 @@ public class Player extends Entity {
     public double getAngle() {
         return angle;
     }
-    
+ 
     // Getters and setters for network updates.
     public int getX() { return x; }
     public int getY() { return y; }
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
+    public void takeDamage(int damage) {
+        this.hp -= damage;
+        if (this.hp == 0) {
+        	// kill player
+        }
+    }
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public KeyHandler getKeyHandler() {
+		return keyHandler;
+	}
+
+	public void setKeyHandler(KeyHandler keyHandler) {
+		this.keyHandler = keyHandler;
+	}
+
+	public MouseHandler getMouseHandler() {
+		return mouseHandler;
+	}
+
+	public void setMouseHandler(MouseHandler mouseHandler) {
+		this.mouseHandler = mouseHandler;
+	}
+
+	public ArrayList<Bullet> getBullets() {
+		return bullets;
+	}
+
+	public void setBullets(ArrayList<Bullet> bullets) {
+		this.bullets = bullets;
+	}
+
+	public TileManager getTileM() {
+		return tileM;
+	}
+
+	public void setTileM(TileManager tileM) {
+		this.tileM = tileM;
+	}
+
+	public long getFireDelay() {
+		return fireDelay;
+	}
+
+	public void setFireDelay(long fireDelay) {
+		this.fireDelay = fireDelay;
+	}
+
+	public long getLastShot() {
+		return lastShot;
+	}
+
+	public void setLastShot(long lastShot) {
+		this.lastShot = lastShot;
+	}
+
+	public int getSpriteCounter() {
+		return spriteCounter;
+	}
+
+	public void setSpriteCounter(int spriteCounter) {
+		this.spriteCounter = spriteCounter;
+	}
+
+	public int getSpriteNum() {
+		return spriteNum;
+	}
+
+	public void setSpriteNum(int spriteNum) {
+		this.spriteNum = spriteNum;
+	}
+
+	public int getHp() {
+		return hp;
+	}
+
+	public void setHp(int hp) {
+		this.hp = hp;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+
+	public BufferedImage getUp1() {
+		return up1;
+	}
+
+	public void setUp1(BufferedImage up1) {
+		this.up1 = up1;
+	}
+
+	public BufferedImage getUp2() {
+		return up2;
+	}
+
+	public void setUp2(BufferedImage up2) {
+		this.up2 = up2;
+	}
+
 }

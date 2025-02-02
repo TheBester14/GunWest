@@ -35,6 +35,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // For sending rotation updates.
     private double lastSentAngle;
+    public UI ui;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -63,6 +64,9 @@ public class GamePanel extends JPanel implements Runnable {
         
         this.requestFocusInWindow();
         
+        this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
+        ui = new UI(this, player);
+
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -113,6 +117,9 @@ public class GamePanel extends JPanel implements Runnable {
             rp.update();  // update bullet positions, etc.
             rp.draw(g2);
         }
+
+        ui.draw(g);
+
         
         g2.dispose();
     }
