@@ -62,11 +62,31 @@ public class UI {
 	private void drawGuns(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 		
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-		g2.setComposite(ac);
+		AlphaComposite unselected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+		AlphaComposite selected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+		
+		if (this.player.getCurrentWeapon() == 0) {
+			g2.setComposite(selected);
+		} else {
+			g2.setComposite(unselected);
+		}
 		
 		g2.drawImage(this.sniper, 865, -19, 130, 130, null);
+		
+		if (this.player.getCurrentWeapon() == 1) {
+			g2.setComposite(selected);
+		} else {
+			g2.setComposite(unselected);
+		}
+		
 		g2.drawImage(this.shotgun, 1005, -21, 120, 120, null);
+		
+		if (this.player.getCurrentWeapon() == 2) {
+			g2.setComposite(selected);
+		} else {
+			g2.setComposite(unselected);
+		}
+		
 		g2.drawImage(this.pistol, 1135, -5, 94, 94, null);
 		
 		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
