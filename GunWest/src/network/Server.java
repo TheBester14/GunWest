@@ -30,23 +30,22 @@ public class Server {
                 players.add(player);
                 System.out.println("Player " + player.getUsername() + " connected (ID=" + player.getPlayerId() + ").");
                 
-                // Broadcast join message.
                 broadcast("CHAT Server: " + player.getUsername() + " joined!", -1);
-                
                 // Send WELCOME message with assigned ID and initial position.
                 player.sendMessage("WELCOME " + player.getPlayerId() + " " + player.getX() + " " + player.getY());
                 
-                // Send already‐connected players’ positions to the new player.
+                // Send existing players’ positions and rotations to the new player.
                 for (Player p : players) {
                     if (p.getPlayerId() != player.getPlayerId()) {
                         player.sendMessage("UPDATE " + p.getPlayerId() + " " + p.getX() + " " + p.getY());
                         player.sendMessage("ROTATE " + p.getPlayerId() + " " + p.getAngle());
+                        player.sendMessage("HPUPDATE " + p.getPlayerId() + " " + p.getHp());
                     }
                 }
-                
-                // Broadcast new player's initial position and rotation to all other players.
+                // Broadcast new player's initial info to all other players.
                 broadcast("UPDATE " + player.getPlayerId() + " " + player.getX() + " " + player.getY(), player.getPlayerId());
                 broadcast("ROTATE " + player.getPlayerId() + " " + player.getAngle(), player.getPlayerId());
+                broadcast("HPUPDATE " + player.getPlayerId() + " " + player.getHp(), player.getPlayerId());
                 
                 new Thread(() -> handlePlayer(player)).start();
             } catch (IOException e) {
@@ -61,19 +60,17 @@ public class Server {
             while ((message = player.receiveMessage()) != null) {
                 System.out.println("From " + player.getUsername() + ": " + message);
                 if (message.toUpperCase().startsWith("MOVE")) {
-                    // Expected format: "MOVE dx dy"
+                    // Format: "MOVE dx dy"
                     String[] parts = message.split(" ");
                     if (parts.length == 3) {
                         int dx = Integer.parseInt(parts[1]);
                         int dy = Integer.parseInt(parts[2]);
-                        // Update player's position.
                         player.setX(player.getX() + dx);
                         player.setY(player.getY() + dy);
-                        // Broadcast new position.
                         broadcast("UPDATE " + player.getPlayerId() + " " + player.getX() + " " + player.getY(), -1);
                     }
                 } else if (message.toUpperCase().startsWith("ROTATE")) {
-                    // Expected format: "ROTATE <angle>"
+                    // Format: "ROTATE <angle>"
                     String[] parts = message.split(" ");
                     if (parts.length == 2) {
                         double angle = Double.parseDouble(parts[1]);
@@ -81,13 +78,27 @@ public class Server {
                         broadcast("ROTATE " + player.getPlayerId() + " " + angle, player.getPlayerId());
                     }
                 } else if (message.toUpperCase().startsWith("BULLET")) {
-                    // Expected format: "BULLET <startX> <startY> <angle>"
+                    // Format: "BULLET <startX> <startY> <angle>"
                     String[] parts = message.split(" ");
                     if (parts.length == 4) {
                         int startX = Integer.parseInt(parts[1]);
                         int startY = Integer.parseInt(parts[2]);
                         double bulletAngle = Double.parseDouble(parts[3]);
                         broadcast("BULLET " + player.getPlayerId() + " " + startX + " " + startY + " " + bulletAngle, player.getPlayerId());
+                    }
+                } else if (message.toUpperCase().startsWith("DAMAGE")) {
+                    // Format: "DAMAGE <targetId> <damage>"
+                    String[] parts = message.split(" ");
+                    if (parts.length >= 3) {
+                        int targetId = Integer.parseInt(parts[1]);
+                        int damage = Integer.parseInt(parts[2]);
+                        for (Player p : players) {
+                            if (p.getPlayerId() == targetId) {
+                                p.takeDamage(damage);
+                                broadcast("HPUPDATE " + targetId + " " + p.getHp(), -1);
+                                break;
+                            }
+                        }
                     }
                 } else if (message.toUpperCase().startsWith("CHAT")) {
                     String chatContent = message.substring(4).trim();
@@ -110,9 +121,6 @@ public class Server {
         }
     }
 
-    /**
-     * Broadcasts a message to all connected players. (senderId == -1 means send to everyone.)
-     */
     private void broadcast(String message, int senderId) {
         for (Player p : players) {
             if (p.getPlayerId() != senderId) {

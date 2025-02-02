@@ -2,6 +2,7 @@ package entities;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -9,8 +10,8 @@ import javax.imageio.ImageIO;
 public abstract class Entity {
     public int x;
     public int y;
-    protected int width;
-    protected int height;
+    public int width;
+    public int height;
     protected Color color;
     protected int speed;
     
@@ -31,6 +32,10 @@ public abstract class Entity {
             e.printStackTrace();
         }
         return image;
+    }
+    
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, width, height);
     }
     
     public abstract void update();

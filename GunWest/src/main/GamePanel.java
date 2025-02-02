@@ -4,10 +4,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
 import tile.TileManager;
+import entities.Bullet;
 import entities.Player;
 
 public class GamePanel extends JPanel implements Runnable {
@@ -20,7 +22,7 @@ public class GamePanel extends JPanel implements Runnable {
     public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 rows
 
     private Thread gameThread;
-    
+    private int myId;
     public MouseHandler mouseHandler;
     public KeyHandler keyHandler;
     public Player player;
@@ -75,30 +77,34 @@ public class GamePanel extends JPanel implements Runnable {
         gameThread.start();
     }
     
-    // Called by the network client to provide a reference.
+
+    public void setMyId(int id) {
+        this.myId = id;
+    }
+
     public void setNetworkClient(network.Client client) {
         this.netClient = client;
-        // Also pass the network sender to the local player.
         player.setNetworkSender(client);
     }
     
-    // Called by the network client when a remote player's position update is received.
+
     public void updateRemotePlayer(int id, int x, int y) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setPosition(x, y);
         } else {
-            remotePlayers.put(id, new RemotePlayer(x, y));
+            // Pass the tileManager from this GamePanel to the RemotePlayer.
+            RemotePlayer rp = new RemotePlayer(x, y, tileManager);
+            rp.setId(id);  // Ensure the remote player's id is set correctly.
+            remotePlayers.put(id, rp);
         }
     }
     
-    // Called by the network client when a remote player's rotation update is received.
     public void updateRemotePlayerRotation(int id, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setAngle(angle);
         }
     }
     
-    // Called by the network client when a remote player fires a bullet.
     public void remotePlayerBulletFired(int id, int startX, int startY, double angle) {
         if (remotePlayers.containsKey(id)) {
             remotePlayers.get(id).fireBullet(startX, startY, angle);
@@ -113,15 +119,21 @@ public class GamePanel extends JPanel implements Runnable {
         // Draw the tile map.
         tileManager.draw(g2);
         
-        // Draw the local player.
-        player.draw(g2);
-        
-        ui.draw(g);
-        // Draw remote players.
-        for(RemotePlayer rp : remotePlayers.values()) {
-            rp.update();  // update bullet positions, etc.
-            rp.draw(g2);
+        // Draw the local player only if alive.
+        if (player.getHp() > 0) {
+            player.draw(g2);
         }
+        
+        // Draw remote players only if they are alive.
+        for (RemotePlayer rp : remotePlayers.values()) {
+            if (rp.getHp() > 0) {
+                rp.update();  // update bullet positions, etc.
+                rp.draw(g2);
+            }
+        }
+        
+        // Draw the UI (which uses a fresh transform for HUD elements)
+        ui.draw(g);
         
         g2.dispose();
     }
@@ -147,7 +159,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Update the game: process local player movement and send MOVE/ROTATE commands.
-    private void updateGame() {
+    public void updateGame() {
         int oldX = player.getX();
         int oldY = player.getY();
         
@@ -156,16 +168,48 @@ public class GamePanel extends JPanel implements Runnable {
         int dx = player.getX() - oldX;
         int dy = player.getY() - oldY;
         
-        // If movement occurred, send a MOVE command.
         if(netClient != null && (dx != 0 || dy != 0)) {
             netClient.sendToServer("MOVE " + dx + " " + dy);
         }
         
-        // Check if rotation has changed significantly.
         double currentAngle = player.getAngle();
         if(netClient != null && Math.abs(currentAngle - lastSentAngle) > 0.01) {
             netClient.sendToServer("ROTATE " + currentAngle);
             lastSentAngle = currentAngle;
         }
+        
+
+     // Local player's bullets vs. remote players.
+        for (int i = player.getBullets().size() - 1; i >= 0; i--) {
+            Bullet bullet = player.getBullets().get(i);
+            Rectangle bulletRect = new Rectangle(bullet.x, bullet.y, bullet.width, bullet.height);
+            for (RemotePlayer rp : remotePlayers.values()) {
+                // Only apply damage if the bullet's owner is not equal to the target's id.
+                if (bulletRect.intersects(rp.getBounds()) && bullet.getOwnerId() != rp.getId()) {
+                    netClient.sendToServer("DAMAGE " + rp.getId() + " 30");
+                    bullet.setDestroyed(true);
+                }
+            }
+        }
+
+        // Remote players' bullets vs. local player.
+        Rectangle localBounds = player.getBounds();
+        for (RemotePlayer rp : remotePlayers.values()) {
+            for (int i = rp.getBullets().size() - 1; i >= 0; i--) {
+                RemoteBullet rb = rp.getBullets().get(i);
+                Rectangle rbRect = new Rectangle((int)rb.getX(), (int)rb.getY(), rb.getSize(), rb.getSize());
+                // Only apply damage if the bullet's owner is not the local player.
+                if (rbRect.intersects(localBounds) && rb.getOwnerId() != myId) {
+                    netClient.sendToServer("DAMAGE " + myId + " 30");
+                    rb.setDestroyed(true);
+                }
+            }
+        }
     }
+    public void updateRemotePlayerHP(int id, int newHP) {
+        if(remotePlayers.containsKey(id)) {
+            remotePlayers.get(id).setHp(newHP);
+        }
+    }
+
 }

@@ -24,6 +24,7 @@ public class Player extends Entity {
     private int spriteCounter;
     private int spriteNum;
     private int hp;
+    private int id;  // Added: player's id
     private BufferedImage up1, up2;
     private int currentWeapon;
     
@@ -32,6 +33,14 @@ public class Player extends Entity {
     
     public void setNetworkSender(NetworkSender ns) {
          this.networkSender = ns;
+    }
+    
+    // New getter and setter for id.
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
     }
     
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
@@ -47,13 +56,13 @@ public class Player extends Entity {
         this.width = 50;
         this.height = 50;
         this.hp = 240;
+        this.currentWeapon = 2;
         
         loadImages();
         
         this.spriteCounter = 0;
         this.spriteNum = 1;
         this.angle = 0;
-        this.currentWeapon = 2;
         
         // Set an initial position.
         this.x = 100;
@@ -98,13 +107,11 @@ public class Player extends Entity {
             spriteNum = 1;
         }
         
-        // Check collision with tiles.
         if (collisionChecker()) {
             x = oldX;
             y = oldY;
         }
         
-        // Mouse rotation.
         int mouseX = mouseHandler.getMouseX();
         int mouseY = mouseHandler.getMouseY();
         int playerCenterX = x + width / 2;
@@ -115,12 +122,10 @@ public class Player extends Entity {
         double newAngle = Math.atan2(dy, dx) + Math.PI / 2;
         angle = newAngle;
         
-        // *** Added shooting check ***
         if (mouseHandler.isLeftDown()) {
             shootBullet(angle);
         }
         
-        // Update bullets & remove destroyed ones.
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             b.update();
@@ -132,20 +137,13 @@ public class Player extends Entity {
     
     public boolean collisionChecker() {
         Rectangle playerRect = new Rectangle(x, y, width, height);
-        
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {
             for (int col = 0; col < tileM.gp.maxWorldCol; col++) {
                 int tileIndex = tileM.mapTileNumber[col][row];
-                
                 if (tileM.tile[tileIndex].collision) {
                     int tileX = col * tileM.gp.tileSize;
                     int tileY = row * tileM.gp.tileSize;
-                    Rectangle tileRect = new Rectangle(
-                        tileX,
-                        tileY,
-                        tileM.gp.tileSize,
-                        tileM.gp.tileSize
-                    );
+                    Rectangle tileRect = new Rectangle(tileX, tileY, tileM.gp.tileSize, tileM.gp.tileSize);
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
@@ -158,19 +156,14 @@ public class Player extends Entity {
     @Override
     public void draw(Graphics g) {
         BufferedImage baseImage = (spriteNum == 1) ? up1 : up2;
-        
         Graphics2D g2 = (Graphics2D) g;
         int centerX = x + width / 2;
         int centerY = y + height / 2;
-        
         AffineTransform oldTransform = g2.getTransform();
-        
         g2.translate(centerX, centerY);
         g2.rotate(angle);
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
-        
-        // Draw bullets.
         for (Bullet bullet : bullets) {
             bullet.draw(g);
         }
@@ -179,16 +172,10 @@ public class Player extends Entity {
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
-            Bullet newBullet = new Bullet(
-                x + width / 2,
-                y + height / 2,
-                8,
-                angle,
-                tileM
-            );
+            // Pass this player's id as ownerId.
+            Bullet newBullet = new Bullet(x + width / 2, y + height / 2, 8, angle, tileM, this.id);
             bullets.add(newBullet);
             lastShot = currentTime;
-            // Send bullet event over the network if available.
             if (networkSender != null) {
                 networkSender.sendToServer("BULLET " + (x + width / 2) + " " + (y + height / 2) + " " + angle);
             }
@@ -199,123 +186,37 @@ public class Player extends Entity {
         return angle;
     }
     
+    public int getHp() {
+        return hp;
+    }
+    
+    public void setHp(int hp) {
+        this.hp = hp;
+    }
+    
     public void takeDamage(int damage) {
         this.hp -= damage;
-        if (this.hp == 0) {
-        	// kill player
+        if (this.hp < 0) {
+            this.hp = 0;
         }
     }
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public KeyHandler getKeyHandler() {
-		return keyHandler;
-	}
-
-	public void setKeyHandler(KeyHandler keyHandler) {
-		this.keyHandler = keyHandler;
-	}
-
-	public MouseHandler getMouseHandler() {
-		return mouseHandler;
-	}
-
-	public void setMouseHandler(MouseHandler mouseHandler) {
-		this.mouseHandler = mouseHandler;
-	}
-
-	public ArrayList<Bullet> getBullets() {
-		return bullets;
-	}
-
-	public void setBullets(ArrayList<Bullet> bullets) {
-		this.bullets = bullets;
-	}
-
-	public TileManager getTileM() {
-		return tileM;
-	}
-
-	public void setTileM(TileManager tileM) {
-		this.tileM = tileM;
-	}
-
-	public long getFireDelay() {
-		return fireDelay;
-	}
-
-	public void setFireDelay(long fireDelay) {
-		this.fireDelay = fireDelay;
-	}
-
-	public long getLastShot() {
-		return lastShot;
-	}
-
-	public void setLastShot(long lastShot) {
-		this.lastShot = lastShot;
-	}
-
-	public int getSpriteCounter() {
-		return spriteCounter;
-	}
-
-	public void setSpriteCounter(int spriteCounter) {
-		this.spriteCounter = spriteCounter;
-	}
-
-	public int getSpriteNum() {
-		return spriteNum;
-	}
-
-	public void setSpriteNum(int spriteNum) {
-		this.spriteNum = spriteNum;
-	}
-
-	public int getHp() {
-		return hp;
-	}
-
-	public void setHp(int hp) {
-		this.hp = hp;
-	}
-
-	public void setAngle(double angle) {
-		this.angle = angle;
-	}
-
-	public BufferedImage getUp1() {
-		return up1;
-	}
-
-	public void setUp1(BufferedImage up1) {
-		this.up1 = up1;
-	}
-
-	public BufferedImage getUp2() {
-		return up2;
-	}
-
-	public void setUp2(BufferedImage up2) {
-		this.up2 = up2;
-	}
-
-	public int getCurrentWeapon() {
-		return currentWeapon;
-	}
-
-	public void setCurrentWeapon(int currentWeapon) {
-		this.currentWeapon = currentWeapon;
-	}
-
+    
+    public ArrayList<Bullet> getBullets() {
+        return bullets;
+    }
+    
     public int getX() { return x; }
     public int getY() { return y; }
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
+
+	public int getCurrentWeapon() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public int getScore() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

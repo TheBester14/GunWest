@@ -11,7 +11,8 @@ public class Player {
     private int playerId;
     private String username;
     private int x, y;
-    private double angle;  // New field for sprite rotation
+    private double angle;  // Sprite rotation
+    private int hp;        // New field for health points
 
     public Player(Socket socket, int playerId, String username) throws IOException {
         this.socket = socket;
@@ -24,6 +25,7 @@ public class Player {
         this.x = 100;
         this.y = 100;
         this.angle = 0.0;
+        this.hp = 240; // Initial HP
     }
 
     public void sendMessage(String message) {
@@ -34,16 +36,50 @@ public class Player {
         return input.readLine();
     }
     
-    public int getX() { return x; }
-    public void setX(int x) { this.x = x; }
-    public int getY() { return y; }
-    public void setY(int y) { this.y = y; }
+    public int getX() { 
+        return x; 
+    }
+    public void setX(int x) { 
+        this.x = x; 
+    }
+    public int getY() { 
+        return y; 
+    }
+    public void setY(int y) { 
+        this.y = y; 
+    }
     
-    public int getPlayerId() { return playerId; }
-    public String getUsername() { return username; }
+    public int getPlayerId() { 
+        return playerId; 
+    }
+    public String getUsername() { 
+        return username; 
+    }
     
-    public double getAngle() { return angle; }
-    public void setAngle(double angle) { this.angle = angle; }
+    public double getAngle() { 
+        return angle; 
+    }
+    public void setAngle(double angle) { 
+        this.angle = angle; 
+    }
+    
+    // New method: getHp() returns current health.
+    public int getHp() {
+        return hp;
+    }
+    
+    // New method: setHp() sets the player's health.
+    public void setHp(int hp) {
+        this.hp = hp;
+    }
+    
+    // New method: apply damage to the player.
+    public void takeDamage(int damage) {
+        this.hp -= damage;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
+    }
     
     public void close() throws IOException {
         input.close();

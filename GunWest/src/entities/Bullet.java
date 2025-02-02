@@ -3,17 +3,17 @@ package entities;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-
 import tile.TileManager;
 
 public class Bullet extends Entity {
     private double angle;     
     private int speed;
     private boolean destroyed;  
-    
     private TileManager tileM;  
+    private int ownerId; // New field: stores the id of the shooter.
 
-    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM) {
+    // Modified constructor: add ownerId as the last parameter.
+    public Bullet(int startX, int startY, int speed, double angle, TileManager tileM, int ownerId) {
         this.x = startX;
         this.y = startY;
         this.speed = speed;
@@ -21,58 +21,48 @@ public class Bullet extends Entity {
         this.width = 10;
         this.height = 10;
         this.color = Color.YELLOW;
-        
         this.tileM = tileM;
         this.destroyed = false;  
+        this.ownerId = ownerId;
     }
     
     @Override
     public void update() {
-
         x += (int)(speed * Math.cos(angle - Math.PI / 2));
         y += (int)(speed * Math.sin(angle - Math.PI / 2));
-        
         if (checkTileCollision()) {
-            // Mark this bullet as destroyed so player can remove it
             destroyed = true;
         }
     }
     
     @Override
     public void draw(Graphics g) {
-
         g.setColor(color);
         g.fillOval(x, y, width, height);
     }
     
-
     public boolean isDestroyed() {
         return destroyed;
     }
     
- 
+    public void setDestroyed(boolean destroyed) {
+        this.destroyed = destroyed;
+    }
+    
+    // New getter for ownerId.
+    public int getOwnerId() {
+        return ownerId;
+    }
+    
     private boolean checkTileCollision() {
-        // The bullet's bounding box
         Rectangle bulletRect = new Rectangle(x, y, width, height);
-        
-        // Loop over the tile map to find collisions
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {
             for (int col = 0; col < tileM.gp.maxWorldCol; col++) {
                 int tileIndex = tileM.mapTileNumber[col][row];
-                
-                // Only check if tile has collision
                 if (tileM.tile[tileIndex].collision) {
-                    // Calculate tile's on-screen bounding box
                     int tileX = col * tileM.gp.tileSize;
                     int tileY = row * tileM.gp.tileSize;
-                    Rectangle tileRect = new Rectangle(
-                        tileX, 
-                        tileY, 
-                        tileM.gp.tileSize, 
-                        tileM.gp.tileSize
-                    );
-                    
-                    // Check intersection
+                    Rectangle tileRect = new Rectangle(tileX, tileY, tileM.gp.tileSize, tileM.gp.tileSize);
                     if (bulletRect.intersects(tileRect)) {
                         return true;
                     }
@@ -81,32 +71,4 @@ public class Bullet extends Entity {
         }
         return false;
     }
-
-	public double getAngle() {
-		return angle;
-	}
-
-	public void setAngle(double angle) {
-		this.angle = angle;
-	}
-
-	public int getSpeed() {
-		return speed;
-	}
-
-	public void setSpeed(int speed) {
-		this.speed = speed;
-	}
-
-	public TileManager getTileM() {
-		return tileM;
-	}
-
-	public void setTileM(TileManager tileM) {
-		this.tileM = tileM;
-	}
-
-	public void setDestroyed(boolean destroyed) {
-		this.destroyed = destroyed;
-	}
 }
