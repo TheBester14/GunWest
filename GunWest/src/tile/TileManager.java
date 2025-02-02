@@ -30,7 +30,7 @@ public class TileManager {
         setup(2, "Desert3", true);
         setup(3, "Desert4", false);
         setup(4, "Desert5", false);
-        setup(5, "Star", false);
+        setup(5, "Star", true);
     }
     
     public void setup(int index, String imageName, boolean collision) {

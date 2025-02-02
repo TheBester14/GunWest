@@ -179,6 +179,11 @@ public class Player extends Entity {
                         tileM.gp.tileSize
                     );
                     
+                    if (tileIndex == 5 && playerRect.intersects(tileRect)) {
+                        tileM.mapTileNumber[col][row] = 0;
+                        this.speed += 1;
+                    }
+                    
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
