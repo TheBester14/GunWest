@@ -142,7 +142,9 @@ public class Player extends Entity {
     }
     
     public boolean collisionChecker() {
-        Rectangle playerRect = new Rectangle(x, y, width, height);
+    	int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        Rectangle playerRect = new Rectangle(trueX, trueY, this.width/2, this.height/2);
         
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {
             for (int col = 0; col < tileM.gp.maxWorldCol; col++) {
@@ -157,6 +159,7 @@ public class Player extends Entity {
                         tileM.gp.tileSize,
                         tileM.gp.tileSize
                     );
+                    
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
@@ -180,6 +183,10 @@ public class Player extends Entity {
         g2.rotate(angle);
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
+        
+        int trueX = this.x + (this.width - this.width / 2) / 2;
+        int trueY = this.y + (this.height - this.height / 2) / 2;
+        g.drawRect(trueX, trueY, this.width/2, this.height/2);
         
         // Draw bullets.
         for (Bullet bullet : bullets) {
