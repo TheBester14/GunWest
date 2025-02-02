@@ -39,7 +39,7 @@ public class GamePanel extends JPanel implements Runnable {
         keyHandler = new KeyHandler();
         mouseHandler = new MouseHandler();
         tileManager = new TileManager(this);
-        player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
+        player = new Player(keyHandler, mouseHandler, tileManager, "Adnane", this);
         lastSentAngle = player.getAngle();
 
         remotePlayers = new HashMap<>();
@@ -146,6 +146,24 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
     }
+    
+	// Audio 
+	Sound music = new Sound();
+	Sound soundEffect = new Sound();
+	public void playMusic(int i) {
+		music.setFile(i);
+		music.play();
+		music.loop();
+	}
+	
+	public void stopMusic() {
+		music.stop();
+	}
+	
+	public void playSE(int i ) { // SE mean sound effect
+		soundEffect.setFile(i);
+		soundEffect.play();
+	}
 
     private void updateGame() {
         int oldX = player.getX();
