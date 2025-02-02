@@ -18,11 +18,18 @@ public class GamePanel extends JPanel implements Runnable {
     public final int tileSize = 32;
     public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 columns
     public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 rows
-
     private Thread gameThread;
-    
     public MouseHandler mouseHandler;
-    public KeyHandler keyHandler;
+ 
+    private String AdresseIP;
+    private String nomUtil;
+
+    
+    
+    private MainMenu mainMenu;
+    // Thread for game loop
+    
+    public KeyHandler keyHandler = new KeyHandler();
     public Player player;
     public TileManager tileManager;
     
@@ -47,9 +54,12 @@ public class GamePanel extends JPanel implements Runnable {
 
         remotePlayers = new HashMap<>();
         
+
         this.setPreferredSize(SCREEN_SIZE);
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
+        this.player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
+        this.tileManager = new TileManager(this);
         this.addKeyListener(keyHandler);
         this.addMouseMotionListener(mouseHandler);
         this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
@@ -166,4 +176,31 @@ public class GamePanel extends JPanel implements Runnable {
             lastSentAngle = currentAngle;
         }
     }
+
+	private void move() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void checkCollision() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void startGame() {
+		System.out.println("Starting game with IP: " + AdresseIP + 
+				" and username: " + nomUtil );
+        // Reset the game state if needed
+        // Start the game loop
+        new Thread(this).start();
+    }
+	 public void setConnectionDetails(String AdresseIP, String nomUtil) {
+	        this.AdresseIP = AdresseIP;
+	        this.nomUtil = nomUtil;
+	    }
+    public void setMainMenu(MainMenu mainMenu) {
+        this.mainMenu = mainMenu;
+    }
+
+
 }
+
