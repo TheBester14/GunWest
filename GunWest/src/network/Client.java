@@ -5,7 +5,7 @@ import java.net.Socket;
 import javax.swing.JOptionPane;
 import main.GamePanel;
 
-public class Client {
+public class Client implements NetworkSender {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -62,7 +62,6 @@ public class Client {
     }
     
     private void handleServerMessage(String message) {
-        // Process messages from the server.
         if(message.startsWith("WELCOME")) {
             // Format: "WELCOME <id> <x> <y>"
             String[] parts = message.split(" ");
@@ -80,9 +79,28 @@ public class Client {
             int id = Integer.parseInt(parts[1]);
             int x = Integer.parseInt(parts[2]);
             int y = Integer.parseInt(parts[3]);
-            // IMPORTANT: Only update remote players.
             if(id != myId) {
                 gamePanel.updateRemotePlayer(id, x, y);
+            }
+        }
+        else if(message.startsWith("ROTATE")) {
+            // Format: "ROTATE <id> <angle>"
+            String[] parts = message.split(" ");
+            int id = Integer.parseInt(parts[1]);
+            double angle = Double.parseDouble(parts[2]);
+            if(id != myId) {
+                gamePanel.updateRemotePlayerRotation(id, angle);
+            }
+        }
+        else if(message.startsWith("BULLET")) {
+            // Format: "BULLET <id> <startX> <startY> <angle>"
+            String[] parts = message.split(" ");
+            int id = Integer.parseInt(parts[1]);
+            int startX = Integer.parseInt(parts[2]);
+            int startY = Integer.parseInt(parts[3]);
+            double bulletAngle = Double.parseDouble(parts[4]);
+            if(id != myId) {
+                gamePanel.remotePlayerBulletFired(id, startX, startY, bulletAngle);
             }
         }
         else if(message.startsWith("CHAT")) {
@@ -93,10 +111,12 @@ public class Client {
             System.out.println("Server> " + message);
         }
     }
-
     
-    // Called by the GamePanel to send a message (for example, a MOVE command) to the server.
+    @Override
     public void sendToServer(String msg) {
-        out.println(msg);
+        // Only send if the connection is established.
+        if (out != null) {
+            out.println(msg);
+        }
     }
 }

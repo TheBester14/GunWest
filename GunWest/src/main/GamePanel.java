@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
@@ -31,14 +29,20 @@ public class GamePanel extends JPanel implements Runnable {
     // For networking: a reference to the network client (if set)
     private network.Client netClient;
     
-    // Remote players (other clients): mapping from player ID to a RemotePlayer
-    private Map<Integer, RemotePlayer> remotePlayers;
+    // Remote players: mapping from player ID to RemotePlayer.
+    // (They are used for drawing remote players including their rotation and bullets.)
+    public Map<Integer, RemotePlayer> remotePlayers;
+
+    // For sending rotation updates.
+    private double lastSentAngle;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
         mouseHandler = new MouseHandler();
         tileManager = new TileManager(this);
         player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
+        // Set initial lastSentAngle to player's starting angle.
+        lastSentAngle = player.getAngle();
 
         remotePlayers = new HashMap<>();
         
@@ -49,15 +53,14 @@ public class GamePanel extends JPanel implements Runnable {
         this.addMouseMotionListener(mouseHandler);
         this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
         
-        // When the panel is clicked, request focus so key events are captured.
-        this.addMouseListener(new MouseAdapter() {
+        // When the panel is clicked, request focus.
+        this.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
+            public void mousePressed(java.awt.event.MouseEvent e) {
                 requestFocusInWindow();
             }
         });
         
-        // Request focus on startup.
         this.requestFocusInWindow();
         
         gameThread = new Thread(this);
@@ -67,6 +70,8 @@ public class GamePanel extends JPanel implements Runnable {
     // Called by the network client to provide a reference.
     public void setNetworkClient(network.Client client) {
         this.netClient = client;
+        // Also pass the network sender to the local player.
+        player.setNetworkSender(client);
     }
     
     // Called by the network client when a remote player's position update is received.
@@ -78,19 +83,34 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
     
+    // Called by the network client when a remote player's rotation update is received.
+    public void updateRemotePlayerRotation(int id, double angle) {
+        if (remotePlayers.containsKey(id)) {
+            remotePlayers.get(id).setAngle(angle);
+        }
+    }
+    
+    // Called by the network client when a remote player fires a bullet.
+    public void remotePlayerBulletFired(int id, int startX, int startY, double angle) {
+        if (remotePlayers.containsKey(id)) {
+            remotePlayers.get(id).fireBullet(startX, startY, angle);
+        }
+    }
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
         
-        // Draw the tile map
+        // Draw the tile map.
         tileManager.draw(g2);
         
-        // Draw the local player (controlled by the host/client)
+        // Draw the local player.
         player.draw(g2);
         
-        // Draw remote players
-        for (RemotePlayer rp : remotePlayers.values()) {
+        // Draw remote players.
+        for(RemotePlayer rp : remotePlayers.values()) {
+            rp.update();  // update bullet positions, etc.
             rp.draw(g2);
         }
         
@@ -117,7 +137,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    // Update the game: process local player movement and send MOVE commands when needed.
+    // Update the game: process local player movement and send MOVE/ROTATE commands.
     private void updateGame() {
         int oldX = player.getX();
         int oldY = player.getY();
@@ -127,9 +147,16 @@ public class GamePanel extends JPanel implements Runnable {
         int dx = player.getX() - oldX;
         int dy = player.getY() - oldY;
         
-        // If movement occurred, send a MOVE command to the server.
-        if (netClient != null && (dx != 0 || dy != 0)) {
+        // If movement occurred, send a MOVE command.
+        if(netClient != null && (dx != 0 || dy != 0)) {
             netClient.sendToServer("MOVE " + dx + " " + dy);
+        }
+        
+        // Check if rotation has changed significantly.
+        double currentAngle = player.getAngle();
+        if(netClient != null && Math.abs(currentAngle - lastSentAngle) > 0.01) {
+            netClient.sendToServer("ROTATE " + currentAngle);
+            lastSentAngle = currentAngle;
         }
     }
 }

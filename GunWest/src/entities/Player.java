@@ -10,6 +10,7 @@ import main.GamePanel;
 import main.KeyHandler;
 import main.MouseHandler;
 import tile.TileManager;
+import network.NetworkSender;
 
 public class Player extends Entity {
     private String name;
@@ -24,7 +25,13 @@ public class Player extends Entity {
     private int spriteCounter;
     private int spriteNum;
     
-    // Assume Entity declares protected int x, y, speed, width, height and BufferedImages up1, up2.
+    // For sending network events.
+    private NetworkSender networkSender;
+    
+    public void setNetworkSender(NetworkSender ns) {
+         this.networkSender = ns;
+    }
+    
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;
@@ -87,13 +94,13 @@ public class Player extends Entity {
             spriteNum = 1;
         }
         
-        // Check collision with tiles
+        // Check collision with tiles.
         if (collisionChecker()) {
             x = oldX;
             y = oldY;
         }
         
-        // Mouse rotation
+        // Mouse rotation.
         int mouseX = mouseHandler.getMouseX();
         int mouseY = mouseHandler.getMouseY();
         int playerCenterX = x + width / 2;
@@ -101,14 +108,15 @@ public class Player extends Entity {
         double dx = mouseX - playerCenterX;
         double dy = mouseY - playerCenterY;
         
-        angle = Math.atan2(dy, dx);
-        angle += Math.PI / 2; 
-
+        double newAngle = Math.atan2(dy, dx) + Math.PI / 2;
+        angle = newAngle;
+        
+        // *** Added shooting check ***
         if (mouseHandler.isLeftDown()) {
             shootBullet(angle);
         }
         
-        // Update bullets & remove destroyed ones
+        // Update bullets & remove destroyed ones.
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             b.update();
@@ -158,7 +166,7 @@ public class Player extends Entity {
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
         g2.setTransform(oldTransform);
         
-        // Draw bullets
+        // Draw bullets.
         for (Bullet bullet : bullets) {
             bullet.draw(g);
         }
@@ -167,14 +175,19 @@ public class Player extends Entity {
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
-            bullets.add(new Bullet(
+            Bullet newBullet = new Bullet(
                 x + width / 2,
                 y + height / 2,
                 8,
                 angle,
                 tileM
-            ));
+            );
+            bullets.add(newBullet);
             lastShot = currentTime;
+            // Send bullet event over the network if available.
+            if (networkSender != null) {
+                networkSender.sendToServer("BULLET " + (x + width / 2) + " " + (y + height / 2) + " " + angle);
+            }
         }
     }
     
@@ -182,7 +195,7 @@ public class Player extends Entity {
         return angle;
     }
     
-    // Getters and setters for network updates:
+    // Getters and setters for network updates.
     public int getX() { return x; }
     public int getY() { return y; }
     public void setX(int x) { this.x = x; }

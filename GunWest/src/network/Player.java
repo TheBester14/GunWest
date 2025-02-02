@@ -11,6 +11,7 @@ public class Player {
     private int playerId;
     private String username;
     private int x, y;
+    private double angle;  // New field for sprite rotation
 
     public Player(Socket socket, int playerId, String username) throws IOException {
         this.socket = socket;
@@ -22,6 +23,7 @@ public class Player {
         // Set a common starting position for every player.
         this.x = 100;
         this.y = 100;
+        this.angle = 0.0;
     }
 
     public void sendMessage(String message) {
@@ -39,6 +41,9 @@ public class Player {
     
     public int getPlayerId() { return playerId; }
     public String getUsername() { return username; }
+    
+    public double getAngle() { return angle; }
+    public void setAngle(double angle) { this.angle = angle; }
     
     public void close() throws IOException {
         input.close();
