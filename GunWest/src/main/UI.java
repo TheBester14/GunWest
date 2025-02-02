@@ -30,7 +30,6 @@ public class UI {
 	}
 	
 	private void drawLives(Graphics g) {
-		this.hp = 210;
 		int hearts = this.hp / 60;
 		int horizontalOffset = 30;
 		int heartIndex = 0;
