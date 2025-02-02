@@ -67,8 +67,8 @@ public class Player extends Entity {
     
     @Override
     public void update() {
-        int oldX = x;
-        int oldY = y;
+        int oldX = this.x;
+        int oldY = this.y;
         
         boolean moving = false;
         if (this.keyHandler.upPressed) {
@@ -110,7 +110,7 @@ public class Player extends Entity {
         }
         
         // Check collision with tiles.
-        if (collisionChecker()) {
+        if (collisionChecker() || boundChecker()) {
             x = oldX;
             y = oldY;
         }
@@ -167,6 +167,20 @@ public class Player extends Entity {
             }
         }
         return false;
+    }
+    
+    private boolean boundChecker() {
+        int panelWidth = 1280;
+        int panelHeight = 704;
+
+        int objectWidth = this.width / 2;
+        int objectHeight = this.height / 2;
+
+        int newX = this.x + (width - objectWidth) / 2;
+        int newY = this.y + (height - objectHeight) / 2;
+
+        return (newX < 0 || newX > panelWidth - objectWidth ||
+        		newY < 0 || newY > panelHeight - objectHeight);
     }
     
     @Override
