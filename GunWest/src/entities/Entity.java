@@ -13,14 +13,8 @@ public abstract class Entity {
     protected int height;
     protected Color color;
     protected int speed;
-    protected int health;
-    
-    // Sprite images for various directions (if needed)
-    protected BufferedImage up1, up2, down, left, right, upRight, upLeft, downRight, downLeft;
-    protected BufferedImage down1, down2;
     
     public Entity() {
-        // Default starting position and size
         this.x = 500;
         this.y = 500;
         this.width = 50;
@@ -28,15 +22,6 @@ public abstract class Entity {
         this.color = Color.black;
     }
     
-    public void takeDamage() {
-        // Implement damage logic if needed.
-    }
-    
-    /**
-     * Loads an image from the given file path (from your resources).
-     * @param filePath the resource path of the image.
-     * @return the loaded BufferedImage, or null if loading fails.
-     */
     public BufferedImage setup(String filePath) {
         BufferedImage image = null;
         try {
@@ -54,4 +39,52 @@ public abstract class Entity {
         g.setColor(this.color);
         g.fillRect(this.x, this.y, this.width, this.height);
     }
+
+	public int getX() {
+		return x;
+	}
+
+	public void setX(int x) {
+		this.x = x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void setY(int y) {
+		this.y = y;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
 }
