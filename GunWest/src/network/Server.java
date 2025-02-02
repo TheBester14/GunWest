@@ -3,8 +3,11 @@ package network;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import entities.Player;
 
 public class Server {
     private ServerSocket serverSocket;
@@ -27,8 +30,8 @@ public class Server {
                 String username = in.readLine();
                 Player player = new Player(socket, nextPlayerId++, username);
                 players.add(player);
-                System.out.println("Player " + player.getUsername() + " connected!");
-                broadcast(player.getUsername() + " has joined the game!", -1);
+                System.out.println("Player " + player.getName() + " connected!");
+                broadcast(player.getName() + " has joined the game!", -1);
                 new Thread(() -> handlePlayer(player)).start();
             } catch (IOException e) {
                 e.printStackTrace();
