@@ -1,5 +1,7 @@
 package entities;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -177,6 +179,11 @@ public class Player extends Entity {
                         tileM.gp.tileSize
                     );
                     
+                    if (tileIndex == 5 && playerRect.intersects(tileRect)) {
+                        tileM.mapTileNumber[col][row] = 0;
+                        this.speed += 1;
+                    }
+                    
                     if (playerRect.intersects(tileRect)) {
                         return true;
                     }
@@ -219,6 +226,10 @@ public class Player extends Entity {
         for (Bullet bullet : bullets) {
             bullet.draw(g);
         }
+        
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Orbitron", Font.BOLD, 17));
+        g.drawString(this.name, this.x - 8, this.y - 5);
     }
     
     public void shootBullet(double angle) {
