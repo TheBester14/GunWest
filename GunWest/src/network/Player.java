@@ -86,7 +86,7 @@ public class Player {
 	public byte[] receiveAudio() {
 	    try {
 	        InputStream in = socket.getInputStream();
-	        byte[] buffer = new byte[32768];
+	        byte[] buffer = new byte[4096];
 	        int bytesRead = in.read(buffer);
 	        if (bytesRead > 0) {
 	            return Arrays.copyOf(buffer, bytesRead);
