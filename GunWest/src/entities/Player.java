@@ -29,6 +29,8 @@ public class Player extends Entity {
     private int spriteCounter;
     private int spriteNum;
 
+    
+    
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;

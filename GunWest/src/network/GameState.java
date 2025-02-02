@@ -3,6 +3,11 @@ package network;
 import java.util.HashMap;
 import java.util.Map;
 
+import entities.Player;
+import main.KeyHandler;
+import main.MouseHandler;
+import tile.TileManager;
+
 public class GameState {
     private Map<Integer, Player> players; // Key: playerId, Value: PlayerData
 
@@ -11,8 +16,8 @@ public class GameState {
     }
 
     // Add a new player to the game state
-    public void addPlayer(int playerId, String name) {
-        players.put(playerId, new Player(name));
+    public void addPlayer(int playerId, KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
+        players.put(playerId, new Player(keyHandler, mouseHandler, tileM, name));
     }
 
     // Remove a player from the game state
