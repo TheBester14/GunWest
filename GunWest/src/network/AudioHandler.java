@@ -66,6 +66,13 @@ public class AudioHandler {
     
     private void sendAudioData(byte[] data, int length) {
     	 try {
+    		 
+             if (isSilent(data, length)) {
+                 return;
+             }
+    		 
+    	     byte[] cleanData = new byte[length];
+    	     System.arraycopy(data, 0, cleanData, 0, length);
              audioOutputStream.write((length >> 24) & 0xFF);
              audioOutputStream.write((length >> 16) & 0xFF);
              audioOutputStream.write((length >> 8) & 0xFF);
@@ -77,6 +84,15 @@ public class AudioHandler {
          }
     }
 
+    private boolean isSilent(byte[] data, int length) {
+        for (int i = 0; i < length; i++) {
+            if (data[i] != 0) {
+                return false; // Non-silent data found
+            }
+        }
+        return true; // All data is silent
+    }
+    
     private int receiveAudioData(byte[] buffer) {
         try {
             byte[] lengthBytes = new byte[4];
