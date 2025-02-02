@@ -52,7 +52,7 @@ public class Server {
     private void handlePlayer(Player player) {
     	 try {
     		 InputStream in = player.getSocket().getInputStream();
-    	        byte[] buffer = new byte[4096];
+    	        byte[] buffer = new byte[32768];
             while (true) {
             	 int bytesRead = in.read(buffer);
                  if (bytesRead == -1) {
