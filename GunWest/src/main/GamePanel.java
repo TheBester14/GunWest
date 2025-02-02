@@ -30,6 +30,7 @@ public class GamePanel extends JPanel implements Runnable {
     public KeyHandler keyHandler = new KeyHandler();
     public Player player;
     public TileManager tileManager;
+	private String port;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -109,6 +110,12 @@ public class GamePanel extends JPanel implements Runnable {
     public void setMainMenu(MainMenu mainMenu) {
         this.mainMenu = mainMenu;
     }
+
+	public void setConnectionDetailsHost(String ipAddress, String port2) {
+		// TODO Auto-generated method stub
+		  this.AdresseIP = ipAddress;
+		  this.port = port2;
+	}
 
 
 }
