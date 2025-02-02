@@ -71,21 +71,32 @@ public class Player extends Entity {
         int oldY = y;
         
         boolean moving = false;
-        if (keyHandler.upPressed) {
-            y -= speed;
+        if (this.keyHandler.upPressed) {
+        	this.y -= this.speed;
             moving = true;
         }
-        if (keyHandler.downPressed) {
-            y += speed;
+        if (this.keyHandler.downPressed) {
+        	this.y += this.speed;
             moving = true;
         }
-        if (keyHandler.leftPressed) {
-            x -= speed;
+        if (this.keyHandler.leftPressed) {
+        	this.x -= this.speed;
             moving = true;
         }
-        if (keyHandler.rightPressed) {
-            x += speed;
+        if (this.keyHandler.rightPressed) {
+        	this.x += this.speed;
             moving = true;
+        }
+        
+        if (this.keyHandler.oneKey) {
+        	setCurrentWeapon(0);
+        	this.keyHandler.oneKey = false;
+        } else if (this.keyHandler.twoKey) {
+        	setCurrentWeapon(1);
+        	this.keyHandler.twoKey = false;
+        } else if (this.keyHandler.threeKey) {
+        	setCurrentWeapon(2);
+        	this.keyHandler.threeKey = false;
         }
         
         if (moving) {
