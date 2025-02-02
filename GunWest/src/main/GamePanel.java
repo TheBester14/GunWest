@@ -20,13 +20,22 @@ public class GamePanel extends JPanel implements Runnable {
     public final int tileSize = 32;
     public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 columns
     public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 rows
-
     private Thread gameThread;
     private int myId;
+
     public MouseHandler mouseHandler;
-    public KeyHandler keyHandler;
+ 
+    private String AdresseIP;
+    private String nomUtil;
+
+    
+    
+    // Thread for game loop
+    
+    public KeyHandler keyHandler = new KeyHandler();
     public Player player;
     public TileManager tileManager;
+
 
     public UI ui;
 
@@ -57,11 +66,8 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);
         this.addKeyListener(keyHandler);
         this.addMouseMotionListener(mouseHandler);
-
         this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
         ui = new UI(this, player);
-
-        this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
         
         // When the panel is clicked, request focus.
         this.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -72,7 +78,7 @@ public class GamePanel extends JPanel implements Runnable {
         });
         
         this.requestFocusInWindow();
-        
+
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -119,6 +125,7 @@ public class GamePanel extends JPanel implements Runnable {
         // Draw the tile map.
         tileManager.draw(g2);
         
+
         // Draw the local player only if alive.
         if (player.getHp() > 0) {
             player.draw(g2);
@@ -134,7 +141,19 @@ public class GamePanel extends JPanel implements Runnable {
         
         // Draw the UI (which uses a fresh transform for HUD elements)
         ui.draw(g);
+
+        // Draw the local player.
+        player.draw(g2);
         
+        // Draw remote players.
+        for(RemotePlayer rp : remotePlayers.values()) {
+            rp.update();  // update bullet positions, etc.
+            rp.draw(g2);
+        }
+
+        ui.draw(g);
+
+
         g2.dispose();
     }
 
@@ -206,10 +225,35 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
     }
+
     public void updateRemotePlayerHP(int id, int newHP) {
         if(remotePlayers.containsKey(id)) {
             remotePlayers.get(id).setHp(newHP);
         }
     }
 
+
+
+	private void move() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void checkCollision() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void startGame() {
+		System.out.println("Starting game with IP: " + AdresseIP + 
+				" and username: " + nomUtil );
+        // Reset the game state if needed
+        // Start the game loop
+        new Thread(this).start();
+    }
+	 public void setConnectionDetails(String AdresseIP, String nomUtil) {
+	        this.AdresseIP = AdresseIP;
+	        this.nomUtil = nomUtil;
+	    }
+
 }
+

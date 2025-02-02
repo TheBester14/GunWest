@@ -23,11 +23,12 @@ public class Player extends Entity {
     private double angle; 
     private int spriteCounter;
     private int spriteNum;
+
     private int hp;
     private int id;  // Added: player's id
     private BufferedImage up1, up2;
     private int currentWeapon;
-    
+
     // For sending network events.
     private NetworkSender networkSender;
     
@@ -35,6 +36,7 @@ public class Player extends Entity {
          this.networkSender = ns;
     }
     
+
     // New getter and setter for id.
     public int getId() {
         return id;
@@ -43,6 +45,7 @@ public class Player extends Entity {
         this.id = id;
     }
     
+
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;
@@ -60,13 +63,16 @@ public class Player extends Entity {
         
         loadImages();
         
+
         this.spriteCounter = 0;
         this.spriteNum = 1;
         this.angle = 0;
+
         
         // Set an initial position.
         this.x = 100;
         this.y = 100;
+
     }
     
     private void loadImages() {
@@ -232,14 +238,7 @@ public class Player extends Entity {
     public double getAngle() {
         return angle;
     }
-    
-    public int getHp() {
-        return hp;
-    }
-    
-    public void setHp(int hp) {
-        this.hp = hp;
-    }
+
     
     public void takeDamage(int damage) {
         this.hp -= damage;
@@ -248,14 +247,12 @@ public class Player extends Entity {
         }
     }
     
-    public ArrayList<Bullet> getBullets() {
-        return bullets;
-    }
-    
+
     public int getX() { return x; }
     public int getY() { return y; }
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
+
 
 	public int getCurrentWeapon() {
 		// TODO Auto-generated method stub
@@ -266,4 +263,98 @@ public class Player extends Entity {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
+
+	public KeyHandler getKeyHandler() {
+		return keyHandler;
+	}
+
+	public void setKeyHandler(KeyHandler keyHandler) {
+		this.keyHandler = keyHandler;
+	}
+
+	public MouseHandler getMouseHandler() {
+		return mouseHandler;
+	}
+
+	public void setMouseHandler(MouseHandler mouseHandler) {
+		this.mouseHandler = mouseHandler;
+	}
+
+	public ArrayList<Bullet> getBullets() {
+		return bullets;
+	}
+
+	public void setBullets(ArrayList<Bullet> bullets) {
+		this.bullets = bullets;
+	}
+
+	public TileManager getTileM() {
+		return tileM;
+	}
+
+	public void setTileM(TileManager tileM) {
+		this.tileM = tileM;
+	}
+
+	public long getFireDelay() {
+		return fireDelay;
+	}
+
+	public void setFireDelay(long fireDelay) {
+		this.fireDelay = fireDelay;
+	}
+
+	public long getLastShot() {
+		return lastShot;
+	}
+
+	public void setLastShot(long lastShot) {
+		this.lastShot = lastShot;
+	}
+
+	public int getSpriteCounter() {
+		return spriteCounter;
+	}
+
+	public void setSpriteCounter(int spriteCounter) {
+		this.spriteCounter = spriteCounter;
+	}
+
+	public int getSpriteNum() {
+		return spriteNum;
+	}
+
+	public void setSpriteNum(int spriteNum) {
+		this.spriteNum = spriteNum;
+	}
+
+	public int getHp() {
+		return hp;
+	}
+
+	public void setHp(int hp) {
+		this.hp = hp;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+
+	public BufferedImage getUp1() {
+		return up1;
+	}
+
+	public void setUp1(BufferedImage up1) {
+		this.up1 = up1;
+	}
+
+	public BufferedImage getUp2() {
+		return up2;
+	}
+
+	public void setUp2(BufferedImage up2) {
+		this.up2 = up2;
+	}
+
 }
