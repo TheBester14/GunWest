@@ -3,38 +3,72 @@ package main;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import network.Client;
+import network.Server;
+import java.io.IOException;
 
 public class GameFrame extends JFrame {
-    private GamePanel panel;
+    private MainMenuPanel menuPanel;
+    private GamePanel gamePanel;
 
     public GameFrame() {
-        // Create a new GamePanel instance
-        panel = new GamePanel();
+        // Create a main menu panel
+        menuPanel = new MainMenuPanel(this);
+        menuPanel.setPreferredSize(GamePanel.SCREEN_SIZE);
         
-        // Add the panel to the frame
-        this.add(panel);
+        setTitle("GunWest");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setContentPane(menuPanel);
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
         
-        // Frame settings
-        this.setTitle("GunWest");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);
-        this.pack(); 
-        this.setLocationRelativeTo(null); // Centers the window on the screen
-        this.setVisible(true);
+        // Ensure menuPanel gets focus
+        menuPanel.requestFocusInWindow();
         
-        // Ensure the game panel gets focus so key events work
-        panel.requestFocusInWindow();
-        
-        // When the window gains focus, ask the panel to request focus.
-        this.addWindowFocusListener(new WindowAdapter() {
+        // If window gains focus, ask panel to request focus
+        addWindowFocusListener(new WindowAdapter() {
             @Override
             public void windowGainedFocus(WindowEvent e) {
-                panel.requestFocusInWindow();
+                menuPanel.requestFocusInWindow();
             }
         });
     }
     
+    public void startHosting() {
+        new Thread(() -> {
+            try {
+                Server server = new Server(5000);
+                server.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        
+        try {
+            Thread.sleep(1000); // give server a moment
+        } catch (InterruptedException e) {}
+        
+        switchToGamePanel(); 
+    }
+
+    public void startJoining() {
+        switchToGamePanel(); 
+    }
+
+    private void switchToGamePanel() {
+        gamePanel = new GamePanel();
+        network.Client client = new network.Client();
+        client.setGamePanel(gamePanel);
+        client.start();
+        setContentPane(gamePanel);
+        pack();
+        gamePanel.requestFocusInWindow();
+    }
+
+    
     public GamePanel getGamePanel() {
-        return panel;
+        return gamePanel;
     }
 }

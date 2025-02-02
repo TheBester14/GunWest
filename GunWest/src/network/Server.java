@@ -28,32 +28,36 @@ public class Server {
             try {
                 Socket socket = serverSocket.accept();
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                // The first message from a client is the username.
-                String username = in.readLine();
                 
-                // Create a new server-side Player for this connection.
-                Player player = new Player(socket, nextPlayerId++, username);
+                String username = in.readLine(); // first from client
+                
+                // Instead of (new Player(socket, nextPlayerId, username)) always starting at (100,100),
+                // we'll set positions based on nextPlayerId.
+                
+                Player player = new Player(socket, nextPlayerId, username);
+                
+                if (nextPlayerId % 2 == 0) {
+                    // Player 1 Spawn
+                    player.setX(600);
+                    player.setY(50);
+                } else {
+                    // Player 2 Spawn
+                    player.setX(600);
+                    player.setY(600);
+                }
+                
                 players.add(player);
                 System.out.println("Player " + player.getUsername() + " connected (ID=" + player.getPlayerId() + ").");
                 
                 broadcast("CHAT Server: " + player.getUsername() + " joined!", -1);
-                // Send WELCOME message with assigned ID and initial position.
+                // Send WELCOME with assigned ID and (already set) X, Y
                 player.sendMessage("WELCOME " + player.getPlayerId() + " " + player.getX() + " " + player.getY());
                 
-                // Send existing players info to the new player (position, rotation, HP).
-                for (Player p : players) {
-                    if (p.getPlayerId() != player.getPlayerId()) {
-                        player.sendMessage("UPDATE " + p.getPlayerId() + " " + p.getX() + " " + p.getY());
-                        player.sendMessage("ROTATE " + p.getPlayerId() + " " + p.getAngle());
-                        player.sendMessage("HPUPDATE " + p.getPlayerId() + " " + p.getHp());
-                    }
-                }
-                // Broadcast new player's initial info to others.
-                broadcast("UPDATE " + player.getPlayerId() + " " + player.getX() + " " + player.getY(), player.getPlayerId());
-                broadcast("ROTATE " + player.getPlayerId() + " " + player.getAngle(), player.getPlayerId());
-                broadcast("HPUPDATE " + player.getPlayerId() + " " + player.getHp(), player.getPlayerId());
+                // Send existing players info, etc...
                 
+                nextPlayerId++;
                 new Thread(() -> handlePlayer(player)).start();
+                
             } catch (IOException e) {
                 e.printStackTrace();
             }
