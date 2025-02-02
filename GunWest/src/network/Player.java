@@ -12,8 +12,27 @@ public class Player {
     private int playerId;
     private String username;
     private int x, y;
-    private double angle;  // New field for sprite rotation
+    private double angle;  // For sprite rotation
+    
+    // ----------------- ADD THESE FIELDS & METHODS -----------------
+    private int hp = 240;  // Default HP—matches the local “entities.Player”
 
+    public int getHp() {
+        return hp;
+    }
+
+    public void setHp(int hp) {
+        this.hp = hp;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
+    }
+
+    public void takeDamage(int amount) {
+        setHp(this.hp - amount);
+    }
+    // --------------------------------------------------------------
+    
     public Player(Socket socket, int playerId, String username) throws IOException {
         this.socket = socket;
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));

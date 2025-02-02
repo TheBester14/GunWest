@@ -6,9 +6,9 @@ import java.io.InputStream;
 import javax.sound.sampled.*;
 
 public class AudioHandler {
-    private static final int SAMPLE_RATE = 48000;
-    private static final int SAMPLE_SIZE_IN_BITS = 16;
-    private static final int CHANNELS = 2;
+    private static final int SAMPLE_RATE = 8000;
+    private static final int SAMPLE_SIZE_IN_BITS = 8;
+    private static final int CHANNELS = 1;
     private static final boolean SIGNED = true;
     private static final boolean BIG_ENDIAN = false;
     private OutputStream audioOutputStream;
@@ -24,7 +24,7 @@ public class AudioHandler {
             microphone.open(format);
             microphone.start();
             new Thread(() -> {
-                byte[] buffer = new byte[1024 * CHANNELS];
+                byte[] buffer = new byte[1024];
                 while (true) {
                     int bytesRead = microphone.read(buffer, 0, buffer.length);
                     if (bytesRead > 0) {
@@ -45,7 +45,7 @@ public class AudioHandler {
             speakers.open(format);
             speakers.start();
             new Thread(() -> {
-                byte[] buffer = new byte[1024 * CHANNELS];
+                byte[] buffer = new byte[1024];
                 while (true) {
                     int bytesRead = receiveAudioData(buffer);
                     if (bytesRead > 0) {
