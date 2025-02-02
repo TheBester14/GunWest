@@ -36,9 +36,7 @@ public class GameFrame extends JFrame {
         });
     }
     
-    /** Called by MainMenuPanel when user chooses Host. */
     public void startHosting() {
-        // 1) Start server in a new thread
         new Thread(() -> {
             try {
                 Server server = new Server(5000);
@@ -48,33 +46,27 @@ public class GameFrame extends JFrame {
             }
         }).start();
         
-        // (Optional) Wait some time for server to come up
-        try { Thread.sleep(1000); } catch(InterruptedException e){}
+        try {
+            Thread.sleep(1000); // give server a moment
+        } catch (InterruptedException e) {}
         
-        // 2) Now switch to the game panel
-        switchToGamePanel(/* isHost = true */);
+        switchToGamePanel(); 
     }
-    
-    /** Called by MainMenuPanel when user chooses Join. */
+
     public void startJoining() {
-        // Switch to game panel, but we won't start server
-        switchToGamePanel(/* isHost = false */);
+        switchToGamePanel(); 
     }
 
     private void switchToGamePanel() {
-        // Create the game panel
         gamePanel = new GamePanel();
-        
-        // Create and start the client
         network.Client client = new network.Client();
         client.setGamePanel(gamePanel);
-        client.start(); // This will ask for IP, username, etc
-        
-        // Replace content with the gamePanel
+        client.start();
         setContentPane(gamePanel);
         pack();
         gamePanel.requestFocusInWindow();
     }
+
     
     public GamePanel getGamePanel() {
         return gamePanel;
