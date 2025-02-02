@@ -4,11 +4,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener{
-	private GamePanel gp;
-	public boolean upPressed, downPressed, leftPressed, rightPressed;
+	public boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
 	
-	public KeyHandler(GamePanel gp) {
-		this.gp = gp;
+	public KeyHandler() {
 	}
 	
 	public void keyPressed(KeyEvent e) {
@@ -27,6 +25,10 @@ public class KeyHandler implements KeyListener{
 		if (e.getKeyCode() == KeyEvent.VK_D) {
 			this.rightPressed = true;
 		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			this.spacePressed = true;
+		}
 	}
 	
 	public void keyReleased(KeyEvent e) {
@@ -44,6 +46,10 @@ public class KeyHandler implements KeyListener{
 		
 		if (e.getKeyCode() == KeyEvent.VK_D) {
 			this.rightPressed = false;
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			this.spacePressed = false;
 		}
 	}
 

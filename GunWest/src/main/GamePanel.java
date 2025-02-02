@@ -9,7 +9,6 @@ import tile.TileManager;
 import entities.Player;
 
 public class GamePanel extends JPanel implements Runnable {
-    // Screen settings
     public static final int SCREEN_WIDTH = 1280;
     public static final int SCREEN_HEIGHT = 704;
     public static final Dimension SCREEN_SIZE = new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -18,31 +17,26 @@ public class GamePanel extends JPanel implements Runnable {
     public final int maxWorldCol = SCREEN_WIDTH / tileSize; // 40 columns
     public final int maxWorldRow = SCREEN_HEIGHT / tileSize; // 22 rows
 
-    // Thread for game loop
     private Thread gameThread;
     
-    // Input handlers and game entities
-    public KeyHandler keyHandler = new KeyHandler(this);
-    public MouseHandler mouseHandler = new MouseHandler();
+    public MouseHandler mouseHandler;
+    public KeyHandler keyHandler;
     public Player player;
     public TileManager tileManager;
 
     public GamePanel() {
-        // Create the player and tile manager
-        this.player = new Player(keyHandler, mouseHandler, "Adnane");
-        this.tileManager = new TileManager(this);
+        keyHandler = new KeyHandler();
+        mouseHandler = new MouseHandler();
+        tileManager = new TileManager(this);
+        player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
 
-        // Set preferred size and background color
         this.setPreferredSize(SCREEN_SIZE);
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
-        
-        // Register input listeners:
-        // NOTE: Use addMouseMotionListener to capture mouseMoved events.
-        this.addMouseMotionListener(mouseHandler);
         this.addKeyListener(keyHandler);
+        this.addMouseMotionListener(mouseHandler);
+        this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
 
-        // Start the game loop thread
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -82,7 +76,6 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void updateGame() {
-        // Update game elements. Note: call player.update() only once.
         player.update();
     }
 }
