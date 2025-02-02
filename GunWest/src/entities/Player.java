@@ -6,7 +6,6 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-
 import main.GamePanel;
 import main.KeyHandler;
 import main.MouseHandler;
@@ -17,18 +16,15 @@ public class Player extends Entity {
     protected KeyHandler keyHandler;
     protected MouseHandler mouseHandler;
     private ArrayList<Bullet> bullets;
-
-    // Reference to the tile manager
     private TileManager tileM;
     
     private long fireDelay; 
     private long lastShot; 
-    
     private double angle; 
-    
     private int spriteCounter;
     private int spriteNum;
-
+    
+    // Assume Entity declares protected int x, y, speed, width, height and BufferedImages up1, up2.
     public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;
@@ -39,7 +35,6 @@ public class Player extends Entity {
         this.bullets = new ArrayList<>();
         this.fireDelay = 200;
         this.lastShot = 0;
-        
         this.width = 50;
         this.height = 50;
         
@@ -48,6 +43,10 @@ public class Player extends Entity {
         spriteCounter = 0;
         spriteNum = 1;
         angle = 0;
+        
+        // Set an initial position.
+        this.x = 100;
+        this.y = 100;
     }
     
     private void loadImages() {
@@ -156,9 +155,7 @@ public class Player extends Entity {
         
         g2.translate(centerX, centerY);
         g2.rotate(angle);
-        
         g2.drawImage(baseImage, -width / 2, -height / 2, width, height, null);
-        
         g2.setTransform(oldTransform);
         
         // Draw bullets
@@ -167,11 +164,9 @@ public class Player extends Entity {
         }
     }
     
-
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
-            // Add the bullet, passing tileM so it can check collisions
             bullets.add(new Bullet(
                 x + width / 2,
                 y + height / 2,
@@ -186,4 +181,10 @@ public class Player extends Entity {
     public double getAngle() {
         return angle;
     }
+    
+    // Getters and setters for network updates:
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public void setX(int x) { this.x = x; }
+    public void setY(int y) { this.y = y; }
 }

@@ -10,8 +10,6 @@ public class Player {
     
     private int playerId;
     private String username;
-    
-    // The player’s current position.
     private int x, y;
 
     public Player(Socket socket, int playerId, String username) throws IOException {
@@ -21,22 +19,19 @@ public class Player {
         this.playerId = playerId;
         this.username = username;
         
-        // Set an initial position (for example, spaced out based on playerId).
-        this.x = 50 + 100 * playerId;
-        this.y = 50 + 100 * playerId;
+        // Set a common starting position for every player.
+        this.x = 100;
+        this.y = 100;
     }
 
-    // Send a message to the client.
     public void sendMessage(String message) {
         output.println(message);
     }
     
-    // Receive a message from the client.
     public String receiveMessage() throws IOException {
         return input.readLine();
     }
     
-    // Getters and setters for position.
     public int getX() { return x; }
     public void setX(int x) { this.x = x; }
     public int getY() { return y; }

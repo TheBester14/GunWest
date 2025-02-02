@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JPanel;
 import tile.TileManager;
 import entities.Player;
@@ -23,6 +27,12 @@ public class GamePanel extends JPanel implements Runnable {
     public KeyHandler keyHandler;
     public Player player;
     public TileManager tileManager;
+    
+    // For networking: a reference to the network client (if set)
+    private network.Client netClient;
+    
+    // Remote players (other clients): mapping from player ID to a RemotePlayer
+    private Map<Integer, RemotePlayer> remotePlayers;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -30,27 +40,59 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         player = new Player(keyHandler, mouseHandler, tileManager, "Adnane");
 
+        remotePlayers = new HashMap<>();
+        
         this.setPreferredSize(SCREEN_SIZE);
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
         this.addKeyListener(keyHandler);
         this.addMouseMotionListener(mouseHandler);
-        this.addMouseListener(mouseHandler);  // Now MouseHandler handles clicks as well
-
+        this.addMouseListener(mouseHandler);  // MouseHandler handles clicks as well
+        
+        // When the panel is clicked, request focus so key events are captured.
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
+            }
+        });
+        
+        // Request focus on startup.
+        this.requestFocusInWindow();
+        
         gameThread = new Thread(this);
         gameThread.start();
     }
-
+    
+    // Called by the network client to provide a reference.
+    public void setNetworkClient(network.Client client) {
+        this.netClient = client;
+    }
+    
+    // Called by the network client when a remote player's position update is received.
+    public void updateRemotePlayer(int id, int x, int y) {
+        if (remotePlayers.containsKey(id)) {
+            remotePlayers.get(id).setPosition(x, y);
+        } else {
+            remotePlayers.put(id, new RemotePlayer(x, y));
+        }
+    }
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
         
-        // Draw the tile map (if any)
+        // Draw the tile map
         tileManager.draw(g2);
         
-        // Draw the player (which rotates to face the mouse)
+        // Draw the local player (controlled by the host/client)
         player.draw(g2);
+        
+        // Draw remote players
+        for (RemotePlayer rp : remotePlayers.values()) {
+            rp.draw(g2);
+        }
         
         g2.dispose();
     }
@@ -75,7 +117,19 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    // Update the game: process local player movement and send MOVE commands when needed.
     private void updateGame() {
+        int oldX = player.getX();
+        int oldY = player.getY();
+        
         player.update();
+        
+        int dx = player.getX() - oldX;
+        int dy = player.getY() - oldY;
+        
+        // If movement occurred, send a MOVE command to the server.
+        if (netClient != null && (dx != 0 || dy != 0)) {
+            netClient.sendToServer("MOVE " + dx + " " + dy);
+        }
     }
 }
