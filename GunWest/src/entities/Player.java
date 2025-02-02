@@ -27,9 +27,11 @@ public class Player extends Entity {
     private BufferedImage up1, up2;
     private int currentWeapon;
     private int id;
+    public GamePanel gp;
+    
     // For sending network events.
     private NetworkSender networkSender;
-    
+  
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     
@@ -37,7 +39,7 @@ public class Player extends Entity {
          this.networkSender = ns;
     }
     
-    public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name) {
+    public Player(KeyHandler keyHandler, MouseHandler mouseHandler, TileManager tileM, String name, GamePanel gp) {
         this.keyHandler = keyHandler;
         this.mouseHandler = mouseHandler;
         this.tileM = tileM;
@@ -50,7 +52,7 @@ public class Player extends Entity {
         this.width = 50;
         this.height = 50;
         this.hp = 240;
-        
+        this.gp = gp;
         loadImages();
         
         this.spriteCounter = 0;
@@ -83,7 +85,7 @@ public class Player extends Entity {
     public void update() {
         int oldX = this.x;
         int oldY = this.y;
-        
+     
         boolean moving = false;
         if (this.keyHandler.upPressed) {
         	this.y -= this.speed;
@@ -146,7 +148,20 @@ public class Player extends Entity {
         // *** Added shooting check ***
         if (mouseHandler.isLeftDown()) {
             shootBullet(angle);
-        }
+            if(this.getCurrentWeapon() == 0) {
+            	   gp.playSE(3);
+            }
+            else if(this.getCurrentWeapon() == 1) {
+         	   gp.playSE(2);
+         }
+            else if(this.getCurrentWeapon() == 2) {
+         	   gp.playSE(1);
+         }
+            else {
+    
+               	   gp.playSE(1);
+            
+        }}
         
         // Update bullets & remove destroyed ones.
         for (int i = bullets.size() - 1; i >= 0; i--) {
@@ -231,6 +246,7 @@ public class Player extends Entity {
 
         switch (this.currentWeapon) {
             case 0:
+            	
                 damage = 240; // e.g. sniper
                 this.fireDelay = 1200;
                 break;
