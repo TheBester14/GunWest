@@ -3,6 +3,7 @@ package entities;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import tile.TileManager;
 
 public class Bullet extends Entity {
@@ -10,7 +11,7 @@ public class Bullet extends Entity {
     private int speed;
     private boolean destroyed;
     private int damage;
-    
+    private BufferedImage image;
     private TileManager tileM;  
     private int ownerId; // Stores the id of the shooter.
 
@@ -20,14 +21,19 @@ public class Bullet extends Entity {
         this.y = startY;
         this.speed = speed;
         this.angle = angle;
-        this.width = 10;
-        this.height = 10;
+        this.width = 20;
+        this.height = 20;
         this.color = Color.YELLOW;
         
         this.tileM = tileM;
         this.destroyed = false;  
         this.damage = damage;
+
+ 
+        loadImages();
+
         this.ownerId = ownerId;
+
     }
     
     @Override
@@ -42,14 +48,48 @@ public class Bullet extends Entity {
     
     @Override
     public void draw(Graphics g) {
-        g.setColor(color);
-        g.fillOval(x, y, width, height);
+
+        
+
+        // Calculate the centered position for the image
+        int imageX = this.x + (this.width / 2) - (image.getWidth() / 2);
+        int imageY = this.y + (this.height / 2) - (image.getHeight() / 2);
+
+        // Draw the image centered within the rectangle
+        g.drawImage(image, imageX, imageY, null);
     }
+
+
+
+       
     
+
     public boolean isDestroyed() {
         return destroyed;
     }
     
+
+    private void loadImages() {
+   
+    	if (this.damage == 30) {
+    		this.image = setup("/projectile/Projectile1.png");
+        }
+    	
+    	else if(this.damage == 60) {
+    		 this.image = setup("/projectile/Projectile3.png");
+    	}
+    	
+    	else if(this.damage == 240) {
+   		 this.image = setup("/projectile/Projectile2.png");
+    	}
+    	
+    	else {
+    		System.out.println("yes");
+    	}
+    
+    }
+    
+ 
     public void setDestroyed(boolean destroyed) {
         this.destroyed = destroyed;
     }
@@ -62,7 +102,7 @@ public class Bullet extends Entity {
     public int getOwnerId() {
         return ownerId;
     }
-    
+
     private boolean checkTileCollision() {
         Rectangle bulletRect = new Rectangle(x, y, width, height);
         for (int row = 0; row < tileM.gp.maxWorldRow; row++) {

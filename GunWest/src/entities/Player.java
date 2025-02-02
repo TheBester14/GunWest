@@ -64,8 +64,19 @@ public class Player extends Entity {
     }
     
     private void loadImages() {
+    	if (this.currentWeapon ==2) {
         this.up1 = setup("/character/Walking1.png");
         this.up2 = setup("/character/Walking2.png");
+        }
+    	
+    	else if(this.currentWeapon == 0) {
+    		 this.up1 = setup("/character/PersoSniper1.png");
+    	     this.up2 = setup("/character/PersoSniper1.png");
+    	}
+    	else if(this.currentWeapon == 1) {
+   		 this.up1 = setup("/character/PersoStillShotgun.png");
+   	     this.up2 = setup("/character/PersoStillShotgun.png");
+    	}
     }
     
     @Override
@@ -94,12 +105,15 @@ public class Player extends Entity {
         if (this.keyHandler.oneKey) {
         	setCurrentWeapon(0);
         	this.keyHandler.oneKey = false;
+        	loadImages();
         } else if (this.keyHandler.twoKey) {
         	setCurrentWeapon(1);
         	this.keyHandler.twoKey = false;
+        	loadImages();
         } else if (this.keyHandler.threeKey) {
         	setCurrentWeapon(2);
         	this.keyHandler.threeKey = false;
+        	loadImages();
         }
         
         if (moving) {
@@ -237,8 +251,11 @@ public class Player extends Entity {
                 8,
                 angle,
                 tileM,
+
+
                 damage,
                this.getId() 
+
             );
             bullets.add(newBullet);
             lastShot = currentTime;
