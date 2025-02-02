@@ -110,16 +110,16 @@ public class GamePanel extends JPanel implements Runnable {
 
         tileManager.draw(g2);
 
-        // Draw local player only if HP>100 (your condition)
-        if (player.getHp() > 100) {
+        // Draw local player only if HP>0
+        if (player.getHp() > 0) {
             player.draw(g2);
         }
         ui.draw(g);
 
         for (RemotePlayer rp : remotePlayers.values()) {
             rp.update(); // update remote bullets, remove destroyed ones
-            // Draw remote player if HP>100
-            if (rp.getHp() > 100) {
+            // Draw remote player if HP>0
+            if (rp.getHp() > 0) {
                 rp.draw(g2);
             }
         }
