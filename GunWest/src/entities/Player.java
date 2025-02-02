@@ -251,8 +251,6 @@ public class Player extends Entity {
                 8,
                 angle,
                 tileM,
-
-
                 damage,
                this.getId() 
 
