@@ -48,7 +48,7 @@ public class Player extends Entity {
         this.tileM = tileM;
         this.name = name;
         
-        this.speed = 1;
+        this.speed = 2;
         this.bullets = new ArrayList<>();
         this.fireDelay = 400;
         this.lastShot = 0;
@@ -69,7 +69,7 @@ public class Player extends Entity {
     }
     
     private void loadImages() {
-    	if (this.currentWeapon ==2) {
+    	if (this.currentWeapon == 2) {
         this.up1 = setup("/character/Walking1.png");
         this.up2 = setup("/character/Walking2.png");
         }
@@ -212,7 +212,10 @@ public class Player extends Entity {
                     
                     if (tileIndex == 5 && playerRect.intersects(tileRect)) {
                         tileM.mapTileNumber[col][row] = 0;
-                        this.speed += 1;
+                        if (this.speed < 4) {
+                        	this.speed += 1;
+                        }
+                        
                         // star soundf
                         gp.playSE(4);
                     }
