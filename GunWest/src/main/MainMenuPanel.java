@@ -142,7 +142,7 @@ public class MainMenuPanel extends JPanel implements KeyListener {
         String instructions = "For the first 3 games, players can boost their speed with stars\n\n"
                 + "Players can use 3 weapons: the sniper, the shotgun & the pistol\n\n"
                 + "Pistol -- 0.5 heart | Shotgun -- 1 heart | Sniper -- 4 hearts\n\n"
-                + "Players must shoot until a contestant achieves seven kills.";
+                + "Players must shoot until a contestant achieves six kills.";
 
         JOptionPane.showMessageDialog(this, instructions, "Game Instructions", JOptionPane.INFORMATION_MESSAGE);
     }
