@@ -42,7 +42,7 @@ public class Player extends Entity {
         
         this.speed = 4;
         this.bullets = new ArrayList<>();
-        this.fireDelay = 200;
+        this.fireDelay = 300;
         this.lastShot = 0;
         this.width = 50;
         this.height = 50;
@@ -189,13 +189,33 @@ public class Player extends Entity {
     
     public void shootBullet(double angle) {
         long currentTime = System.currentTimeMillis();
+        int damage = 0;
+        
+        switch(this.currentWeapon) {
+	        case 0:
+	          damage = 240;
+	          this.fireDelay = 1200;
+	          break;
+	        case 1:
+	          damage = 60;
+	          this.fireDelay = 800;
+	          break;
+	        case 2:
+	          damage = 30;
+	          this.fireDelay = 400;
+	          break;
+	        default:
+	          damage = 60;
+	      }
+        
         if (currentTime - lastShot >= fireDelay || lastShot == 0) {
             Bullet newBullet = new Bullet(
                 x + width / 2,
                 y + height / 2,
                 8,
                 angle,
-                tileM
+                tileM,
+                5
             );
             bullets.add(newBullet);
             lastShot = currentTime;
