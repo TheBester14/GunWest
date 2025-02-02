@@ -7,8 +7,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public abstract class Entity {
-    protected int x;
-    protected int y;
+    public int x;
+    public int y;
     protected int width;
     protected int height;
     protected Color color;
