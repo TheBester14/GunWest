@@ -30,8 +30,6 @@ public class TileManager {
         setup(2, "Desert3", true);
         setup(3, "Desert4", false);
         setup(4, "Desert5", false);
-        
-
     }
     
     public void setup(int index, String imageName, boolean collision) {
